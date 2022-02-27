@@ -24,10 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Commands\" />
 	  <Folder Include="Assets\" />
-	  <Folder Include="Models\" />
-	  <Folder Include="Services\Interfaces\" />
 	</ItemGroup>
 
 </Project>

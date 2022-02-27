@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Elemonsters.Services;
+using Elemonsters.Services.Interfaces;
 using Interactivity;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -40,6 +41,8 @@ namespace Elemonsters
 
                 // Custom Services
                 .AddSingleton<CommandHandlerService>()
+                .AddSingleton<ILockoutService, LockoutService>()
+                .AddSingleton<InstanceTrackerService>()
 
                 // Database
                 //.AddDbContext<LoLBotContext>(options =>

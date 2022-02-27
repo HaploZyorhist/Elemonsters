@@ -1,0 +1,29 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Elemonsters.Models
+{
+    /// <summary>
+    /// class for containing data on what the user is doing
+    /// </summary>
+    public class UserLockData
+    {
+        /// <summary>
+        /// bool containing whether the user is locked in an action
+        /// </summary>
+        public bool IsLocked { get; set; }
+
+        /// <summary>
+        /// int for tracking what instance of an activity the user is doing
+        /// </summary>
+        public int Instance { get; set; }
+
+        /// <summary>
+        /// action the user is locked doing
+        /// </summary>
+        public ActivityEnum Activity { get; set; }
+    }
+}
