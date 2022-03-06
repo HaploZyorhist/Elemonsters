@@ -42,6 +42,8 @@ namespace Elemonsters
                 // Custom Services
                 .AddSingleton<CommandHandlerService>()
                 .AddSingleton<ILockoutService, LockoutService>()
+                .AddTransient<IDBService, DBService>()
+                .AddSingleton<IBattleService, BattleService>()
                 .AddSingleton<InstanceTrackerService>()
 
                 // Database

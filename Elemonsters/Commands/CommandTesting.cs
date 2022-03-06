@@ -132,6 +132,20 @@ namespace Elemonsters.Commands
             }
         }
 
+        [Command("Damage")]
+        [Summary("This command is used for testing damage formulas")]
+        public async Task DealDamage()
+        {
+            try
+            {
+
+            }
+            catch(Exception ex)
+            {
+
+            }
+        }
+
         #endregion
     }
 }
