@@ -9,7 +9,7 @@ namespace Elemonsters.Assets.Creatures.CreatureBases
     /// <summary>
     /// this creature is used only for test purposes
     /// </summary>
-    public class TestCreature : CreatureParent
+    public class TestCreature : CreatureBase
     {
         public TestCreature()
         {

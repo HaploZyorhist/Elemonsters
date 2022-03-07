@@ -15,20 +15,34 @@ namespace Elemonsters.Services
     public class PartyService : IPartyService
     {
         public StatFactory _statFactory = new StatFactory();
+        public ICreatureService _creatureService;
+
+        public PartyService(ICreatureService creatureService)
+        {
+            _creatureService = creatureService;
+        }
+
         /// <inheritdoc />
-        public CreatureParent SpawnCreature(CreatureParent creature)
+        public async Task<List<CreatureBase>> GetParty(ulong playerID)
         {
             try
             {
-                //TODO Get data from database for creature upgrade status
+                List<CreatureBase> party = new List<CreatureBase>();
 
-                var c = creature;
+                //TODO get the party from the database
 
-                c.Level = 1;
-                c.Rank = 1;
-                c.Stats = _statFactory.GenerateStats(c);
+                Dictionary<ulong, string> partyMembers = new Dictionary<ulong, string>();
+                partyMembers.Add(0, "Testy");
 
-                return c;
+                foreach (var pM in partyMembers)
+                {
+                    //TODO Get stat modifications for the creature in question
+                    
+                    var cList = await _creatureService.GetCreatureList();
+                    var c = cList.Where(x => x.Key == pM.Value).FirstOrDefault();
+                }
+
+                return party;
             }
             catch (Exception ex)
             {

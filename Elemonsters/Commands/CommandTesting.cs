@@ -21,18 +21,21 @@ namespace Elemonsters.Commands
         #region Fields
 
         public ActivityEnum _activity = ActivityEnum.Testing;
-        public ILockoutService _locker;
-        private InstanceTrackerService _instance;
+        private ILockoutService _locker;
+        private IInstanceTrackerService _instance;
+        private IPartyService _partyService;
 
         #endregion
 
         #region CTOR
 
         public CommandTesting(ILockoutService locker,
-                              InstanceTrackerService instance)
+                              IInstanceTrackerService instance,
+                              IPartyService partyService)
         {
             _locker = locker;
             _instance = instance;
+            _partyService = partyService;
         }
 
         #endregion
@@ -70,6 +73,7 @@ namespace Elemonsters.Commands
             try
             {
                 var userCheck = await _locker.CheckGeneralLock(context.User);
+                var instance = await _instance.GetInstance();
 
                 if (userCheck == false)
                 {
@@ -80,26 +84,26 @@ namespace Elemonsters.Commands
                     sb.AppendLine($"Test 1: {context.User.Mention} was locked");
                 }
 
-                var userInstanceCheck = await _locker.CheckActivityLock(context.User, _activity, _instance.Instance);
+                var userInstanceCheck = await _locker.CheckActivityLock(context.User, _activity, instance);
 
                 if (userInstanceCheck == false)
                 {
-                    sb.AppendLine($"Test 2: {context.User.Mention} was not performing {_activity} for the instance {_instance.Instance}");
+                    sb.AppendLine($"Test 2: {context.User.Mention} was not performing {_activity} for the instance {instance}");
                 }
                 else
                 {
-                    sb.AppendLine($"Test 2: {context.User.Mention} was performing {_activity} specified for instance {_instance.Instance}");
+                    sb.AppendLine($"Test 2: {context.User.Mention} was performing {_activity} specified for instance {instance}");
                 }
 
-                var userLockCheck = await _locker.LockUser(context.User, _activity, _instance.Instance);
+                var userLockCheck = await _locker.LockUser(context.User, _activity, instance);
 
                 if (userLockCheck == false)
                 {
-                    sb.AppendLine($"Test 3: Unable to lock {context.User.Mention} with the instance {_instance.Instance} and activity {_activity}");
+                    sb.AppendLine($"Test 3: Unable to lock {context.User.Mention} with the instance {instance} and activity {_activity}");
                 }
                 else
                 {
-                    sb.AppendLine($"Test 3: {context.User.Mention} was locked with the instance {_instance.Instance} and activity {_activity}");
+                    sb.AppendLine($"Test 3: {context.User.Mention} was locked with the instance {instance} and activity {_activity}");
                 }
 
                 await ReplyAsync(sb.ToString());
@@ -115,14 +119,15 @@ namespace Elemonsters.Commands
         public async Task IncrimentInstanceCommand()
         {
             var sb = new StringBuilder();
+            var instance = await _instance.GetInstance();
 
             try
             {
-                sb.AppendLine($"The current instance is {_instance.Instance}");
+                sb.AppendLine($"The current instance is {instance}");
 
                 await _instance.IncrimentInstance();
 
-                sb.AppendLine($"The new instance is {_instance.Instance}");
+                sb.AppendLine($"The new instance is {instance}");
 
                 await ReplyAsync(sb.ToString());
             }
@@ -138,6 +143,9 @@ namespace Elemonsters.Commands
         {
             try
             {
+                var myParty = await _partyService.GetParty(Context.User.Id);
+                var compParty = await _partyService.GetParty(0);
+
 
             }
             catch(Exception ex)

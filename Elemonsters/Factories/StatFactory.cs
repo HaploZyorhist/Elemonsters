@@ -15,7 +15,7 @@ namespace Elemonsters.Factories
         /// <summary>
         /// method for generating stats for an instance from the base
         /// </summary>
-        public CreatureStats GenerateStats (CreatureParent creature)
+        public CreatureStats GenerateStats (CreatureBase creature)
         {
             try
             {

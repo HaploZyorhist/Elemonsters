@@ -9,7 +9,7 @@ namespace Elemonsters.Assets.Creatures
     /// <summary>
     /// parent class for creatures
     /// </summary>
-    public abstract class CreatureParent
+    public abstract class CreatureBase
     {
         /// <summary>
         /// creature's name
