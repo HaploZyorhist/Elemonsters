@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elemonsters.Assets.Enums;
 
 namespace Elemonsters.Services
 {
@@ -70,6 +71,10 @@ namespace Elemonsters.Services
                 creature.Stats.Speed = 10;
                 creature.Stats.Vamp = 10;
                 creature.Stats.Drain = 10;
+                creature.Elements.PhysicalElement = PhysicalElement.Fire;
+                creature.Elements.RangedElement = RangedElement.Wind;
+                creature.Elements.PhysicalValue = 100;
+                creature.Elements.RangedValue = 100;
                 creature.Level = 1;
                 creature.Rank = 1;
 

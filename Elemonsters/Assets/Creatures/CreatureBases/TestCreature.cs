@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elemonsters.Assets.Enums;
 
 namespace Elemonsters.Assets.Creatures.CreatureBases
 {
@@ -35,6 +36,13 @@ namespace Elemonsters.Assets.Creatures.CreatureBases
                 Speed = 10,
                 Vamp = 10,
                 Drain = 10,
+            };
+            Elements = new CreatureElements
+            {
+                PhysicalElement = PhysicalElement.Fire,
+                PhysicalValue = 100,
+                RangedElement = RangedElement.Wind,
+                RangedValue = 100
             };
             Level = 0;
             Rank = 0;

@@ -25,6 +25,11 @@ namespace Elemonsters.Assets.Creatures
         /// the stats of the creature
         /// </summary>
         public CreatureStats Stats { get; set; }
+
+        /// <summary>
+        /// the element types and values of the creature
+        /// </summary>
+        public CreatureElements Elements { get; set; }
         
         /// <summary>
         /// creature's level

@@ -7,6 +7,7 @@ using Discord.Commands;
 using Elemonsters.Models;
 using Elemonsters.Services;
 using Elemonsters.Services.Interfaces;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Elemonsters.Commands
 {
@@ -146,7 +147,11 @@ namespace Elemonsters.Commands
                 var myParty = await _partyService.GetParty(Context.User.Id);
                 var compParty = await _partyService.GetParty(0);
 
+                var sb = new StringBuilder();
+                sb.AppendLine($"You currently have the monster {myParty[0].Name} in your party");
+                sb.AppendLine($"The computer currently has monster {compParty[0].Name} in their party");
 
+                await ReplyAsync(sb.ToString());
             }
             catch(Exception ex)
             {

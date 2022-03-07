@@ -46,6 +46,7 @@ namespace Elemonsters
                 .AddSingleton<IBattleService, BattleService>()
                 .AddSingleton<ICreatureService, CreatureService>()
                 .AddSingleton<IInstanceTrackerService, InstanceTrackerService>()
+                .AddSingleton<IPartyService, PartyService>()
 
                 // Database
                 //.AddDbContext<LoLBotContext>(options =>
