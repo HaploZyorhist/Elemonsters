@@ -60,8 +60,8 @@ namespace Elemonsters.Services
                 creature.Stats.Strength = 100;
                 creature.Stats.Defense = 100;
                 creature.Stats.Lethality = 10;
-                creature.Stats.Spirit = 100;
-                creature.Stats.Aura = 100;
+                creature.Stats.Spirit = 50;
+                creature.Stats.Aura = 200;
                 creature.Stats.Sorcery = 10;
                 creature.Stats.CritChance = 50;
                 creature.Stats.CritModifier = 150;

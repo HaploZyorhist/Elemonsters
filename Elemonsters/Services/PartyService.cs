@@ -41,7 +41,9 @@ namespace Elemonsters.Services
                     var cList = await _creatureService.GetCreatureList();
                     var c = cList.Where(x => x.Key == pM.Value).FirstOrDefault();
 
-                    party.Add(c.Value);
+                    var newCreature = await _creatureService.GetCreatureStats(0, c.Value);
+
+                    party.Add(newCreature);
                 }
 
                 return party;

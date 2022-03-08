@@ -25,6 +25,7 @@ namespace Elemonsters.Commands
         private ILockoutService _locker;
         private IInstanceTrackerService _instance;
         private IPartyService _partyService;
+        private IBattleService _battleService;
 
         #endregion
 
@@ -32,11 +33,13 @@ namespace Elemonsters.Commands
 
         public CommandTesting(ILockoutService locker,
                               IInstanceTrackerService instance,
-                              IPartyService partyService)
+                              IPartyService partyService,
+                              IBattleService battleService)
         {
             _locker = locker;
             _instance = instance;
             _partyService = partyService;
+            _battleService = battleService;
         }
 
         #endregion
@@ -152,6 +155,8 @@ namespace Elemonsters.Commands
                 sb.AppendLine($"The computer currently has monster {compParty[0].Name} in their party");
 
                 await ReplyAsync(sb.ToString());
+
+                await _battleService.BeginBattle(Context, myParty, compParty);
             }
             catch(Exception ex)
             {

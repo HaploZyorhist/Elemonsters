@@ -9,6 +9,7 @@ namespace Elemonsters.Models
     public enum AttackTypeEnum
     {
         Physical,
-        Magic
+        Magic,
+        True
     }
 }

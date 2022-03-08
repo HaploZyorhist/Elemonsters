@@ -23,7 +23,7 @@ namespace Elemonsters.Services.Interfaces
         /// </summary>
         /// <param name="creatureId">the id of the creature instance being queried</param>
         /// <param name="creature">the creature that is in the party</param>
-        /// <returns>creatur with correct stats</returns>
+        /// <returns>creature with correct stats</returns>
         Task<CreatureBase> GetCreatureStats(ulong creatureId, CreatureBase creature);
     }
 }
