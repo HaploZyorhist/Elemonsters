@@ -4,12 +4,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Elemonsters.Assets.Enums
+namespace Elemonsters.Models.Enums
 {
     /// <summary>
     /// enum containing the elemental types of ranged attacks
     /// </summary>
-    public enum RangedElement
+    public enum MagicElement
     {
         Electric,
         Wind,

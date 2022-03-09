@@ -29,19 +29,15 @@ namespace Elemonsters.Services
             {
                 List<CreatureBase> party = new List<CreatureBase>();
 
-                //TODO get the party from the database
-
                 Dictionary<ulong, string> partyMembers = new Dictionary<ulong, string>();
                 partyMembers.Add(0, "Testy");
 
                 foreach (var pM in partyMembers)
                 {
-                    //TODO Get stat modifications for the creature in question
-                    
                     var cList = await _creatureService.GetCreatureList();
                     var c = cList.Where(x => x.Key == pM.Value).FirstOrDefault();
 
-                    var newCreature = await _creatureService.GetCreatureStats(0, c.Value);
+                    var newCreature = await _creatureService.GetCreatureStats(playerID, c.Value);
 
                     party.Add(newCreature);
                 }

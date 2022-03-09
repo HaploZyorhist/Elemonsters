@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Elemonsters.Models;
+using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 
 namespace Elemonsters.Services

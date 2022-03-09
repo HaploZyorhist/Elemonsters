@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Enums;
+﻿using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures.CreatureBases
 {
@@ -41,7 +36,7 @@ namespace Elemonsters.Assets.Creatures.CreatureBases
             {
                 PhysicalElement = PhysicalElement.Fire,
                 PhysicalValue = 100,
-                RangedElement = RangedElement.Wind,
+                MagicElement = MagicElement.Wind,
                 RangedValue = 100
             };
             Level = 0;

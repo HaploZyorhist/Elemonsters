@@ -2,6 +2,8 @@
 using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models;
+using Elemonsters.Models.Combat;
+using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -33,9 +35,25 @@ namespace Elemonsters.Services
 
                 var currentHealth = defender.Stats.Health;
 
-                var damageDelt = await _damageFactory.CalculateDamage(AttackTypeEnum.True, attacker, defender);
+                var request = new DamageRequest
+                {
+                    AttackType = AttackTypeEnum.True,
+                    Damage = attacker.Stats.Strength,
+                    Defense = defender.Stats.Defense,
+                    Penetration = attacker.Stats.Lethality,
+                    DamageModifier = 1
+                };
 
-                defender.Stats.Health -= damageDelt;
+                var elementalBonus = new ElementalRequest
+                {
+                    AttackType = AttackTypeEnum.True,
+                    AttackerElements = attacker.Elements,
+                    DefenderElements = defender.Elements
+                };
+
+                var damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
+
+                defender.Stats.Health -= (int)damageDelt;
 
                 sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {damageDelt} true damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
 
@@ -43,9 +61,12 @@ namespace Elemonsters.Services
 
                 currentHealth = defender.Stats.Health;
 
-                damageDelt = await _damageFactory.CalculateDamage(AttackTypeEnum.Physical, attacker, defender);
+                request.AttackType = AttackTypeEnum.Physical;
+                elementalBonus.AttackType = AttackTypeEnum.Physical;
 
-                defender.Stats.Health -= damageDelt;
+                damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
+
+                defender.Stats.Health -= (int)damageDelt;
 
                 sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {damageDelt} physical damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
 
@@ -53,11 +74,17 @@ namespace Elemonsters.Services
 
                 currentHealth = defender.Stats.Health;
 
-                damageDelt = await _damageFactory.CalculateDamage(AttackTypeEnum.Magic, attacker, defender);
+                request.AttackType = AttackTypeEnum.Magic;
+                request.Damage = attacker.Stats.Spirit;
+                request.Defense = defender.Stats.Aura;
+                request.Penetration = attacker.Stats.Sorcery;
+                elementalBonus.AttackType = AttackTypeEnum.Magic;
 
-                defender.Stats.Health -= damageDelt;
+                damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
 
-                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {damageDelt} magic damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
+                defender.Stats.Health -= (int)damageDelt;
+
+                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} magic damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
 
                 await context.Channel.SendMessageAsync(sb.ToString());
                 return;

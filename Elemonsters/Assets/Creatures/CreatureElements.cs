@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Enums;
+﻿using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures
 {
@@ -14,7 +9,7 @@ namespace Elemonsters.Assets.Creatures
     {
         public PhysicalElement PhysicalElement { get; set; }
         public int PhysicalValue { get; set; }
-        public RangedElement RangedElement { get; set; }
+        public MagicElement MagicElement { get; set; }
         public int RangedValue { get; set; }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Elemonsters.Models
+namespace Elemonsters.Models.Enums
 {
     /// <summary>
     /// enum for tracking what activity is being performed

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Elemonsters.Models
+namespace Elemonsters.Models.Enums
 {
     public enum AttackTypeEnum
     {

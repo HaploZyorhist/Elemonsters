@@ -44,9 +44,9 @@ namespace Elemonsters
                 .AddSingleton<ILockoutService, LockoutService>()
                 .AddTransient<IDBService, DBService>()
                 .AddSingleton<IBattleService, BattleService>()
-                .AddSingleton<ICreatureService, CreatureService>()
+                .AddScoped<ICreatureService, CreatureService>()
                 .AddSingleton<IInstanceTrackerService, InstanceTrackerService>()
-                .AddSingleton<IPartyService, PartyService>()
+                .AddScoped<IPartyService, PartyService>()
 
                 // Database
                 //.AddDbContext<LoLBotContext>(options =>

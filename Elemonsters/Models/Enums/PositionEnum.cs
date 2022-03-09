@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Elemonsters.Assets.Enums
+namespace Elemonsters.Models.Enums
 {
     /// <summary>
     /// enum for referencing the position of a character during combat
