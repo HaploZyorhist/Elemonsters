@@ -10,7 +10,7 @@ namespace Elemonsters.Assets.Creatures.CreatureBases
         public TestCreature()
         {
             Name = "Testy";
-            User = 161700527531491328;
+            User = 0;
             Stats = new CreatureStats
             {
                 Health = 1000,

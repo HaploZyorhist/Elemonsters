@@ -149,10 +149,12 @@ namespace Elemonsters.Commands
         {
             try
             {
+                var sb = new StringBuilder();
+
                 var myParty = await _partyService.GetParty(Context.User.Id);
+
                 var compParty = await _partyService.GetParty(0);
 
-                var sb = new StringBuilder();
                 sb.AppendLine($"You currently have the monster {myParty[0].Name} in your party");
                 sb.AppendLine($"The computer currently has monster {compParty[0].Name} in their party");
 
@@ -160,7 +162,7 @@ namespace Elemonsters.Commands
 
                 await _battleService.BeginBattle(Context, myParty, compParty);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
 
             }

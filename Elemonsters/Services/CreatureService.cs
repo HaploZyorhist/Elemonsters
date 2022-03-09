@@ -50,6 +50,7 @@ namespace Elemonsters.Services
 
                 if (playerID == 0)
                 {
+                    creature.User = playerID;
                     creature.Stats.MaxHealth = 1000;
                     creature.Stats.Health = creature.Stats.MaxHealth;
                     creature.Stats.MaxEnergy = 100;
@@ -77,6 +78,7 @@ namespace Elemonsters.Services
                 }
                 else
                 {
+                    creature.User = playerID;
                     creature.Stats.MaxHealth = 1000;
                     creature.Stats.Health = creature.Stats.MaxHealth;
                     creature.Stats.MaxEnergy = 100;
