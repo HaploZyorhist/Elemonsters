@@ -10,6 +10,6 @@ namespace Elemonsters.Assets.Creatures
         public PhysicalElement PhysicalElement { get; set; }
         public int PhysicalValue { get; set; }
         public MagicElement MagicElement { get; set; }
-        public int RangedValue { get; set; }
+        public int MagicValue { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Elemonsters.Models.Enums;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,8 +10,10 @@ namespace Elemonsters.Assets.Creatures
     /// <summary>
     /// parent class for creatures
     /// </summary>
-    public abstract class CreatureBase
+    public class CreatureBase
     {
+        #region Fields
+
         /// <summary>
         /// creature's name
         /// </summary>
@@ -21,16 +24,6 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public ulong User { get; set; }
 
-        /// <summary>
-        /// the stats of the creature
-        /// </summary>
-        public CreatureStats Stats { get; set; }
-
-        /// <summary>
-        /// the element types and values of the creature
-        /// </summary>
-        public CreatureElements Elements { get; set; }
-        
         /// <summary>
         /// creature's level
         /// </summary>
@@ -43,26 +36,70 @@ namespace Elemonsters.Assets.Creatures
         public int Rank { get; set; }
 
         /// <summary>
-        /// the passive ability of the creature
+        /// the stats of the creature
         /// </summary>
-        public abstract Task Passive();
+        public CreatureStats Stats { get; set; }
 
         /// <summary>
-        /// the creature's first main ability
+        /// the element types and values of the creature
         /// </summary>
-        /// <returns></returns>
-        public abstract Task Ability1();
+        public CreatureElements Elements { get; set; }
 
-        /// <summary>
-        /// the creature's second main ability
-        /// </summary>
-        /// <returns></returns>
-        public abstract Task Ability2();
+        public Ability PassiveAbility { get; set; }
 
-        /// <summary>
-        /// the creature's third main ability
-        /// </summary>
-        /// <returns></returns>
-        public abstract Task Ability3();
+        public Ability AutoAttack { get; set; }
+
+        public Ability Ability1 { get; set; }
+
+        public Ability Ability2 { get; set; }
+
+        public Ability Ability3 { get; set; }
+
+        #endregion
+
+        #region CTOR
+
+        public CreatureBase()
+        {
+            Name = "Testy";
+            User = 0;
+            Level = 1;
+            Rank = 1;
+            Stats = new CreatureStats
+            {
+                Strength =  100,
+                Defense = 100,
+                Lethality = 10,
+                Spirit = 100,
+                Aura = 100,
+                Sorcery = 10,
+                CritChance = 100,
+                CritModifier = 150,
+                Dodge = 100,
+                Tenacity = 100,
+                Drain = 100,
+                Vamp = 100,
+                MaxHealth = 1000,
+                Health = 1000,
+                MaxEnergy = 100,
+                Energy = 100,
+                Regeneration = 100,
+                Speed = 10,
+            };
+            Elements = new CreatureElements
+            {
+                PhysicalElement = PhysicalElement.Fire,
+                PhysicalValue = 100,
+                MagicElement = MagicElement.Wind,
+                MagicValue = 100,
+            };
+            PassiveAbility = new Ability();
+            AutoAttack = new Ability();
+            Ability1 = new Ability();
+            Ability2 = new Ability();
+            Ability3 = new Ability();
+        }
+
+        #endregion
     }
 }

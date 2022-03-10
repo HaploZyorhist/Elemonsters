@@ -12,5 +12,21 @@ namespace Elemonsters.Services
     /// </summary>
     public class DBService : IDBService
     {
+        /// <inheritdoc />
+        public async Task<List<ulong>> GetPlayerParty(ulong playerId)
+        {
+            try
+            {
+                var creatureIDs = new List<ulong>();
+
+                creatureIDs.Add(1);
+
+                return creatureIDs;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
     }
 }

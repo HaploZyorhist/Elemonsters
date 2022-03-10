@@ -11,5 +11,11 @@ namespace Elemonsters.Services.Interfaces
     /// </summary>
     public interface IDBService
     {
+        /// <summary>
+        /// method for getting the player's party from the database
+        /// </summary>
+        /// <param name="playerID">the id of the pleyer being queried</param>
+        /// <returns>list of creature id's in the party</returns>
+        Task<List<ulong>> GetPlayerParty(ulong playerID);
     }
 }

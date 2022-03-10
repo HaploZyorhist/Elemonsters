@@ -11,10 +11,6 @@ namespace Elemonsters.Services
     public class CreatureService : ICreatureService
     {
         public IDBService _serv;
-        /// <summary>
-        /// dictionary for containing a list of available creatures
-        /// </summary>
-        public Dictionary<string, CreatureBase> CreatureList = new Dictionary<string, CreatureBase>();
 
         /// <summary>
         /// ctor for adding creatures to the list of available creatures
@@ -22,30 +18,15 @@ namespace Elemonsters.Services
         public CreatureService(IDBService serv)
         {
             _serv = serv;
-
-            var creature = new TestCreature();
-            CreatureList.Add(creature.Name, creature);
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, CreatureBase>> GetCreatureList()
+        public async Task<CreatureBase> GetCreatureStats(ulong cretureID)
         {
             try
             {
-                return CreatureList;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
-
-        /// <inheritdoc />
-        public async Task<CreatureBase> GetCreatureStats(ulong playerID, CreatureBase creature)
-        {
-            try
-            {
-                //TODO Get the stats from the database
+                //TODO Get the stats from the database using creature id
+                //TODO Get upgrades from the database using creature id
                 //TODO use the stat factory to get the stats for the creature
 
                 if (playerID == 0)

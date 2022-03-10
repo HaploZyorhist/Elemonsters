@@ -1,12 +1,6 @@
 ﻿using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Elemonsters.Services
 {
@@ -15,12 +9,14 @@ namespace Elemonsters.Services
     /// </summary>
     public class PartyService : IPartyService
     {
-        public StatFactory _statFactory = new StatFactory();
         public ICreatureService _creatureService;
+        public IDBService _dbService;
 
-        public PartyService(ICreatureService creatureService)
+        public PartyService(ICreatureService creatureService,
+                            IDBService dBService)
         {
             _creatureService = creatureService;
+            _dbService = dBService;
         }
 
         /// <inheritdoc />
@@ -28,22 +24,16 @@ namespace Elemonsters.Services
         {
             try
             {
-                List<CreatureBase> party = new List<CreatureBase>();
+                //TODO get party from dbservice
+                List<ulong> partyIDs = new List<ulong>();
 
-                Dictionary<ulong, string> partyMembers = new Dictionary<ulong, string>();
-                partyMembers.Add(0, "Testy");
+                var party = new List<CreatureBase>();
 
-                foreach (var pM in partyMembers)
+                foreach (var creatureID in partyIDs)
                 {
-                    var cList = await _creatureService.GetCreatureList();
-                    var c = cList.Where(x => x.Key == pM.Value).FirstOrDefault().Value;
+                    var creature = await _creatureService.GetCreatureStats(creatureID);
 
-                    var cType = c.GetType();
-                    var nc = (CreatureBase)Activator.CreateInstance(cType);
-
-                    var newCreature = await _creatureService.GetCreatureStats(playerID, nc);
-
-                    party.Add(newCreature);
+                    party.Add(creature);
                 }
 
                 return party;
