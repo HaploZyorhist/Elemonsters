@@ -55,7 +55,7 @@ namespace Elemonsters.Services
 
                 defender.Stats.Health -= (int)damageDelt;
 
-                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {damageDelt} true damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
+                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} true damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
 
                 // deal physical damage
 
@@ -68,7 +68,7 @@ namespace Elemonsters.Services
 
                 defender.Stats.Health -= (int)damageDelt;
 
-                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {damageDelt} physical damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
+                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} physical damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
 
                 // deal magic damage
 

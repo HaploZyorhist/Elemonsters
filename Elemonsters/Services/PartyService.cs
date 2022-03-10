@@ -4,6 +4,7 @@ using Elemonsters.Services.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -35,9 +36,12 @@ namespace Elemonsters.Services
                 foreach (var pM in partyMembers)
                 {
                     var cList = await _creatureService.GetCreatureList();
-                    var c = cList.Where(x => x.Key == pM.Value).FirstOrDefault();
+                    var c = cList.Where(x => x.Key == pM.Value).FirstOrDefault().Value;
 
-                    var newCreature = await _creatureService.GetCreatureStats(playerID, c.Value);
+                    var cType = c.GetType();
+                    var nc = (CreatureBase)Activator.CreateInstance(cType);
+
+                    var newCreature = await _creatureService.GetCreatureStats(playerID, nc);
 
                     party.Add(newCreature);
                 }
