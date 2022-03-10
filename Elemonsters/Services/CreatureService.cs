@@ -1,6 +1,6 @@
 ﻿using Elemonsters.Assets.Creatures;
-using Elemonsters.Assets.Creatures.CreatureBases;
-using Elemonsters.Models.Enums;
+using Elemonsters.Factories;
+using Elemonsters.Models.Combat;
 using Elemonsters.Services.Interfaces;
 
 namespace Elemonsters.Services
@@ -10,80 +10,37 @@ namespace Elemonsters.Services
     /// </summary>
     public class CreatureService : ICreatureService
     {
-        public IDBService _serv;
+        public IDBService _dbService;
 
         /// <summary>
         /// ctor for adding creatures to the list of available creatures
         /// </summary>
-        public CreatureService(IDBService serv)
+        public CreatureService(IDBService dbService)
         {
-            _serv = serv;
+            _dbService = dbService;
         }
 
         /// <inheritdoc />
-        public async Task<CreatureBase> GetCreatureStats(ulong cretureID)
+        public async Task<CreatureBase> GetCreatureStats(StatsRequest creatureRequest)
         {
+            StatFactory _statFactory = new StatFactory();
+
             try
             {
-                //TODO Get the stats from the database using creature id
-                //TODO Get upgrades from the database using creature id
-                //TODO use the stat factory to get the stats for the creature
+                var creature = await _dbService.GetCreatureBase(creatureRequest.CreatureName);
 
-                if (playerID == 0)
+                var creatureStats = await _dbService.GetCreatureStats(creatureRequest.CreatureID);
+
+                var updatedStats = await _statFactory.GenerateStats(creatureStats);
+
+                var creatureElements = await _dbService.GetCreatureElements(creatureRequest.CreatureID);
+
+                creature.Stats = updatedStats;
+                creature.Elements = creatureElements;
+
+                if (creatureRequest.CreatureID != 0)
                 {
-                    creature.User = playerID;
-                    creature.Stats.MaxHealth = 1000;
-                    creature.Stats.Health = creature.Stats.MaxHealth;
-                    creature.Stats.MaxEnergy = 100;
-                    creature.Stats.Energy = creature.Stats.MaxEnergy;
-                    creature.Stats.Strength = 100;
-                    creature.Stats.Defense = 100;
-                    creature.Stats.Lethality = 10;
-                    creature.Stats.Spirit = 50;
-                    creature.Stats.Aura = 200;
-                    creature.Stats.Sorcery = 10;
-                    creature.Stats.CritChance = 50;
-                    creature.Stats.CritModifier = 150;
-                    creature.Stats.Dodge = 10;
-                    creature.Stats.Tenacity = 10;
-                    creature.Stats.Regeneration = 10;
-                    creature.Stats.Speed = 10;
-                    creature.Stats.Vamp = 10;
-                    creature.Stats.Drain = 10;
-                    creature.Elements.PhysicalElement = PhysicalElement.Wood;
-                    creature.Elements.MagicElement = MagicElement.Electric;
-                    creature.Elements.PhysicalValue = 100;
-                    creature.Elements.RangedValue = 100;
-                    creature.Level = 1;
-                    creature.Rank = 1;
-                }
-                else
-                {
-                    creature.User = playerID;
-                    creature.Stats.MaxHealth = 1000;
-                    creature.Stats.Health = creature.Stats.MaxHealth;
-                    creature.Stats.MaxEnergy = 100;
-                    creature.Stats.Energy = creature.Stats.MaxEnergy;
-                    creature.Stats.Strength = 100;
-                    creature.Stats.Defense = 100;
-                    creature.Stats.Lethality = 10;
-                    creature.Stats.Spirit = 50;
-                    creature.Stats.Aura = 200;
-                    creature.Stats.Sorcery = 10;
-                    creature.Stats.CritChance = 50;
-                    creature.Stats.CritModifier = 150;
-                    creature.Stats.Dodge = 10;
-                    creature.Stats.Tenacity = 10;
-                    creature.Stats.Regeneration = 10;
-                    creature.Stats.Speed = 10;
-                    creature.Stats.Vamp = 10;
-                    creature.Stats.Drain = 10;
-                    creature.Elements.PhysicalElement = PhysicalElement.Fire;
-                    creature.Elements.MagicElement = MagicElement.Earth;
-                    creature.Elements.PhysicalValue = 100;
-                    creature.Elements.RangedValue = 100;
-                    creature.Level = 1;
-                    creature.Rank = 1;
+                    creature.User = 161700527531491328;
                 }
 
                 return creature;

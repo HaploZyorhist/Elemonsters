@@ -29,6 +29,11 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public int Level { get; set; }
 
+        /// <summary>
+        /// stat for tracking turn order
+        /// </summary>
+        public int ActionPoints { get; set; }
+
         //TODO This needs to be an enum
         /// <summary>
         /// the current upgrade of the creature
@@ -65,6 +70,7 @@ namespace Elemonsters.Assets.Creatures
             User = 0;
             Level = 1;
             Rank = 1;
+            ActionPoints = 0;
             Stats = new CreatureStats
             {
                 Strength =  100,
@@ -98,6 +104,25 @@ namespace Elemonsters.Assets.Creatures
             Ability1 = new Ability();
             Ability2 = new Ability();
             Ability3 = new Ability();
+        }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// causes the creature to gain action points based on their speed
+        /// </summary>
+        public async Task Tick()
+        {
+            try
+            {
+                ActionPoints += Stats.Speed;
+            }
+            catch (Exception ex)
+            {
+                return;
+            }
         }
 
         #endregion

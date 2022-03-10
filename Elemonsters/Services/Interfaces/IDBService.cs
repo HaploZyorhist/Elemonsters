@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elemonsters.Assets.Creatures;
+using Elemonsters.Models.Combat;
 
 namespace Elemonsters.Services.Interfaces
 {
@@ -14,8 +16,29 @@ namespace Elemonsters.Services.Interfaces
         /// <summary>
         /// method for getting the player's party from the database
         /// </summary>
-        /// <param name="playerID">the id of the pleyer being queried</param>
+        /// <param name="playerID">the id of the player being queried</param>
         /// <returns>list of creature id's in the party</returns>
-        Task<List<ulong>> GetPlayerParty(ulong playerID);
+        Task<List<StatsRequest>> GetPlayerParty(ulong playerID);
+
+        /// <summary>
+        /// method for getting stats for a creature from database
+        /// </summary>
+        /// <param name="creatureID">id of the creature being queried</param>
+        /// <returns>stats object for a creature</returns>
+        Task<CreatureStats> GetCreatureStats(ulong creatureID);
+
+        /// <summary>
+        /// gets the base creature from the database
+        /// </summary>
+        /// <param name="creatureName">the name of the creature being queried</param>
+        /// <returns>creature base object containing base setup for a creature</returns>
+        Task<CreatureBase> GetCreatureBase(string creatureName);
+
+        /// <summary>
+        /// gets the elements assigned to a creature from the database
+        /// </summary>
+        /// <param name="creatureID">the id of the creature being queried</param>
+        /// <returns>creature elements object containing their element setup</returns>
+        Task<CreatureElements> GetCreatureElements (ulong creatureID);
     }
 }

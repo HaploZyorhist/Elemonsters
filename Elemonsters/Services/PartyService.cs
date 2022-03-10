@@ -24,14 +24,13 @@ namespace Elemonsters.Services
         {
             try
             {
-                //TODO get party from dbservice
-                List<ulong> partyIDs = new List<ulong>();
-
                 var party = new List<CreatureBase>();
 
-                foreach (var creatureID in partyIDs)
+                var partyRequests = await _dbService.GetPlayerParty(playerID);
+
+                foreach (var creatureRequest in partyRequests)
                 {
-                    var creature = await _creatureService.GetCreatureStats(creatureID);
+                    var creature = await _creatureService.GetCreatureStats(creatureRequest);
 
                     party.Add(creature);
                 }

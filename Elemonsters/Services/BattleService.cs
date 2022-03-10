@@ -66,6 +66,15 @@ namespace Elemonsters.Services
 
                 damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
 
+                var rand = new Random();
+                var r = rand.Next(0, 100);
+
+                if (r < attacker.Stats.CritChance)
+                {
+                    damageDelt *= attacker.Stats.CritModifier;
+                    sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has landed a critical hit and dealt bonus damage");
+                }
+
                 defender.Stats.Health -= (int)damageDelt;
 
                 sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} physical damage, reducing their health from {currentHealth} to {defender.Stats.Health}");

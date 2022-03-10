@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Elemonsters.Database.Tables
 {
-    public class CreatureStats
+    public class CreatureBaseStats
     {
     }
 }

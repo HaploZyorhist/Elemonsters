@@ -84,7 +84,7 @@ namespace Elemonsters.Assets.Creatures
         /// <summary>
         /// how much physical damage is multiplied by when dealing crit damage
         /// </summary>
-        public int CritModifier { get; set; }
+        public double CritModifier { get; set; }
 
         /// <summary>
         /// how much energy the creature gains per turn

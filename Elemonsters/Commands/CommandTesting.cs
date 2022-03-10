@@ -152,7 +152,6 @@ namespace Elemonsters.Commands
                 var sb = new StringBuilder();
 
                 var myParty = await _partyService.GetParty(Context.User.Id);
-
                 var compParty = await _partyService.GetParty(0);
 
                 sb.AppendLine($"You currently have the monster {myParty[0].Name} in your party");
