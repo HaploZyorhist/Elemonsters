@@ -24,7 +24,7 @@ namespace Elemonsters.Services
 
                 var request = new StatsRequest();
 
-                if (playerId == 0)
+                if (playerId == 947509644706869269)
                 {
                     request.CreatureName = "Testy";
                     request.CreatureID = 0;

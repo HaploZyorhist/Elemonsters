@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Elemonsters.Assets.Creatures;
 using Elemonsters.Models;
+using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services;
 using Elemonsters.Services.Interfaces;
@@ -143,23 +145,27 @@ namespace Elemonsters.Commands
             }
         }
 
-        [Command("Damage")]
-        [Summary("This command is used for testing damage formulas")]
-        public async Task DealDamage()
+        [Command("Battle")]
+        [Summary("This command is used for testing battle flow")]
+        public async Task BattleTestCommand()
         {
             try
             {
-                var sb = new StringBuilder();
+                var context = Context;
 
-                var myParty = await _partyService.GetParty(Context.User.Id);
-                var compParty = await _partyService.GetParty(0);
+                var players = new List<IUser>();
 
-                sb.AppendLine($"You currently have the monster {myParty[0].Name} in your party");
-                sb.AppendLine($"The computer currently has monster {compParty[0].Name} in their party");
+                players.Add(context.User);
 
-                await ReplyAsync(sb.ToString());
+                var battleContainer = new BattleContainer
+                {
+                    Players = players,
+                    Context = context,
+                    Instance = await _instance.GetInstance(),
+                    Creatures = new List<CreatureBase>()
+                };
 
-                await _battleService.BeginBattle(Context, myParty, compParty);
+                await _battleService.BeginBattle(battleContainer);
             }
             catch (Exception ex)
             {

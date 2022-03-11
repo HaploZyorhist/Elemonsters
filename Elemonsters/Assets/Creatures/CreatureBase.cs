@@ -25,6 +25,11 @@ namespace Elemonsters.Assets.Creatures
         public ulong User { get; set; }
 
         /// <summary>
+        /// id for the creature
+        /// </summary>
+        public ulong CreatureID { get; set; }
+
+        /// <summary>
         /// creature's level
         /// </summary>
         public int Level { get; set; }
@@ -67,6 +72,7 @@ namespace Elemonsters.Assets.Creatures
         public CreatureBase()
         {
             Name = "Testy";
+            CreatureID = 0;
             User = 0;
             Level = 1;
             Rank = 1;

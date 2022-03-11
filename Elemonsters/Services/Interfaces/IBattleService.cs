@@ -1,5 +1,7 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Elemonsters.Assets.Creatures;
+using Elemonsters.Models.Combat;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,10 +18,7 @@ namespace Elemonsters.Services.Interfaces
         /// <summary>
         /// method for handling battles
         /// </summary>
-        /// <param name="context">object containing the details of the initiation of the command</param>
-        /// <param name="player1Party">the party that the first player is using</param>
-        /// <param name="player2Party">the party that the second player is using</param>
-        /// <returns></returns>
-        Task BeginBattle(ICommandContext context, List<CreatureBase> player1Party, List<CreatureBase> player2Party);
+        /// <param name="battleContainer">object containing the details of the battle to be performed</param>
+        Task BeginBattle(BattleContainer battleContainer);
     }
 }

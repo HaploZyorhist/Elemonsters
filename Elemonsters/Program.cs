@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Elemonsters.Factories;
 using Elemonsters.Services;
 using Elemonsters.Services.Interfaces;
 using Interactivity;
@@ -47,6 +48,9 @@ namespace Elemonsters
                 .AddSingleton<ICreatureService, CreatureService>()
                 .AddSingleton<IInstanceTrackerService, InstanceTrackerService>()
                 .AddSingleton<IPartyService, PartyService>()
+
+                // factories
+                .AddSingleton<DamageFactory>()
 
                 // Database
                 //.AddDbContext<LoLBotContext>(options =>

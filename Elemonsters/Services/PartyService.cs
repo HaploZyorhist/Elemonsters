@@ -32,6 +32,8 @@ namespace Elemonsters.Services
                 {
                     var creature = await _creatureService.GetCreatureStats(creatureRequest);
 
+                    creature.User = playerID;
+
                     party.Add(creature);
                 }
 

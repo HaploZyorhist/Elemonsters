@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models;
@@ -18,89 +19,135 @@ namespace Elemonsters.Services
     /// </summary>
     public class BattleService : IBattleService
     {
-        /// <inheritdoc />
-        public async Task BeginBattle(ICommandContext context, List<CreatureBase> player1Party, List<CreatureBase> player2Party)
-        {
-            DamageFactory _damageFactory = new DamageFactory();
+        private readonly IPartyService _partyService;
+        private readonly DamageFactory _damageFactory;
 
+        public BattleService(IPartyService partyService,
+                             DamageFactory damageFactory)
+        {
+            _partyService = partyService;
+            _damageFactory = damageFactory;
+        }
+
+        /// <inheritdoc />
+        public async Task BeginBattle(BattleContainer battleContainer)
+        {
             try
             {
-                var sb = new StringBuilder();
-
-                var attacker = player1Party[0];
-
-                var defender = player2Party[0];
-
-                // deal true damage
-
-                var currentHealth = defender.Stats.Health;
-
-                var request = new DamageRequest
+                if (battleContainer.Players.Count == 1)
                 {
-                    AttackType = AttackTypeEnum.True,
-                    Damage = attacker.Stats.Strength,
-                    Defense = defender.Stats.Defense,
-                    Penetration = attacker.Stats.Lethality,
-                    DamageModifier = 1
-                };
-
-                var elementalBonus = new ElementalRequest
-                {
-                    AttackType = AttackTypeEnum.True,
-                    AttackerElements = attacker.Elements,
-                    DefenderElements = defender.Elements
-                };
-
-                var damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
-
-                defender.Stats.Health -= (int)damageDelt;
-
-                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} true damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
-
-                // deal physical damage
-
-                currentHealth = defender.Stats.Health;
-
-                request.AttackType = AttackTypeEnum.Physical;
-                elementalBonus.AttackType = AttackTypeEnum.Physical;
-
-                damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
-
-                var rand = new Random();
-                var r = rand.Next(0, 100);
-
-                if (r < attacker.Stats.CritChance)
-                {
-                    damageDelt *= attacker.Stats.CritModifier;
-                    sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has landed a critical hit and dealt bonus damage");
+                    var bot = await battleContainer.Context.Client.GetUserAsync(Environment.GetEnvironmentVariable("BotName"), Environment.GetEnvironmentVariable("BotDiscriminator"));
+                    battleContainer.Players.Add(bot);
                 }
 
-                defender.Stats.Health -= (int)damageDelt;
+                var sb = new StringBuilder();
 
-                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} physical damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
+                var creatures = new List<CreatureBase>();
 
-                // deal magic damage
+                foreach(var player in battleContainer.Players)
+                {
+                    var party = await _partyService.GetParty(player.Id);
+                    creatures.AddRange(party);
+                    sb.AppendLine($"{player.Mention}, you have the monster {creatures.Where(x => x.User == player.Id).FirstOrDefault().Name} in your party");
+                }
 
-                currentHealth = defender.Stats.Health;
+                battleContainer.Creatures.AddRange(creatures);
 
-                request.AttackType = AttackTypeEnum.Magic;
-                request.Damage = attacker.Stats.Spirit;
-                request.Defense = defender.Stats.Aura;
-                request.Penetration = attacker.Stats.Sorcery;
-                elementalBonus.AttackType = AttackTypeEnum.Magic;
+                await battleContainer.Context.Channel.SendMessageAsync(sb.ToString());
+                sb.Clear();
 
-                damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
+                // loop while a player's team has 1 member alive
+                var aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
+                var teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
+                var teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
 
-                defender.Stats.Health -= (int)damageDelt;
+                while(teamAAliveMembers.Count > 0 && teamBAliveMembers.Count > 0)
+                {
+                    
+                    var creaturesToTurn = aliveCreatures.Where(x => x.ActionPoints >= 100).OrderBy(x => x.ActionPoints).ThenBy(x => x.Stats.Speed).ToList();
 
-                sb.AppendLine($"<@{attacker.User}>'s {attacker.Name} has attacked the computer's {defender.Name} for {(int)damageDelt} magic damage, reducing their health from {currentHealth} to {defender.Stats.Health}");
+                    foreach(var myTurn in creaturesToTurn)
+                    {
+                        battleContainer = await PerformTurn(battleContainer, myTurn);
 
-                await context.Channel.SendMessageAsync(sb.ToString());
+                        myTurn.ActionPoints -= 100;
+                        sb.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has taken a turn and reduced their action points by 100");
+                    }
+
+                    foreach(var alive in aliveCreatures)
+                    {
+                        await alive.Tick();
+                    }
+
+                    aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
+                    teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
+                    teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
+
+                    if (!string.IsNullOrEmpty(sb.ToString()))
+                    {
+                        await battleContainer.Context.Channel.SendMessageAsync(sb.ToString());
+                        sb.Clear();
+                    }
+                }
+
                 return;
             }
             catch (Exception ex)
             {
                 return;
+            }
+        }
+
+        public async Task<BattleContainer> PerformTurn(BattleContainer battleContainer, CreatureBase myTurn)
+        {
+            try
+            {
+                var target = battleContainer.Creatures.Where(x => x.CreatureID != myTurn.CreatureID).FirstOrDefault();
+
+                var request = new DamageRequest();
+
+                var elementalBonus = new ElementalRequest
+                {
+                    AttackerElements = myTurn.Elements,
+                    DefenderElements = target.Elements
+                };
+
+                if (myTurn.CreatureID == 0)
+                {
+                    elementalBonus.AttackType = AttackTypeEnum.Magic;
+                    request.AttackType = AttackTypeEnum.Magic;
+                    request.Damage = myTurn.Stats.Spirit;
+                    request.Defense = target.Stats.Aura;
+                    request.Penetration = target.Stats.Sorcery;
+                    request.DamageModifier = 1;
+                }
+                else
+                {
+                    elementalBonus.AttackType = AttackTypeEnum.Physical;
+                    request.AttackType = AttackTypeEnum.Physical;
+                    request.Damage = myTurn.Stats.Strength;
+                    request.Defense = target.Stats.Defense;
+                    request.Penetration = target.Stats.Lethality;
+                    request.DamageModifier = 1;
+                }
+
+                var damageDelt = await _damageFactory.CalculateDamage(request) * await _damageFactory.CheckElementalBonus(elementalBonus);
+                var currentHealth = target.Stats.Health;
+
+                var roundedDamage = (int)damageDelt;
+
+                target.Stats.Health -= roundedDamage;
+
+                var sb = new StringBuilder();
+                sb.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has attacked the computer's {target.Name} for {roundedDamage} {request.AttackType} damage, reducing their health from {currentHealth} to {target.Stats.Health}");
+
+                await battleContainer.Context.Channel.SendMessageAsync(sb.ToString());
+
+                return battleContainer;
+            }
+            catch(Exception ex)
+            {
+                return null;
             }
         }
     }

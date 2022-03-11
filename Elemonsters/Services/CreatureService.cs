@@ -38,10 +38,7 @@ namespace Elemonsters.Services
                 creature.Stats = updatedStats;
                 creature.Elements = creatureElements;
 
-                if (creatureRequest.CreatureID != 0)
-                {
-                    creature.User = 161700527531491328;
-                }
+                creature.CreatureID = creatureRequest.CreatureID;
 
                 return creature;
             }
