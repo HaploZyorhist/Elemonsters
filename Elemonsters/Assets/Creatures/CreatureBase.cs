@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elemonsters.Factories;
 
 namespace Elemonsters.Assets.Creatures
 {
@@ -55,15 +56,10 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public CreatureElements Elements { get; set; }
 
-        public Ability PassiveAbility { get; set; }
-
-        public Ability AutoAttack { get; set; }
-
-        public Ability Ability1 { get; set; }
-
-        public Ability Ability2 { get; set; }
-
-        public Ability Ability3 { get; set; }
+        /// <summary>
+        /// The creature's abilities
+        /// </summary>
+        public List<Ability> Abilities { get; set; } = new List<Ability>();
 
         #endregion
 
@@ -79,7 +75,7 @@ namespace Elemonsters.Assets.Creatures
             ActionPoints = 0;
             Stats = new CreatureStats
             {
-                Strength =  100,
+                Strength = 100,
                 Defense = 100,
                 Lethality = 10,
                 Spirit = 100,
@@ -105,11 +101,7 @@ namespace Elemonsters.Assets.Creatures
                 MagicElement = MagicElement.Wind,
                 MagicValue = 100,
             };
-            PassiveAbility = new Ability();
-            AutoAttack = new Ability();
-            Ability1 = new Ability();
-            Ability2 = new Ability();
-            Ability3 = new Ability();
+            
         }
 
         #endregion
@@ -128,6 +120,36 @@ namespace Elemonsters.Assets.Creatures
             catch (Exception ex)
             {
                 return;
+            }
+        }
+
+        /// <summary>
+        /// method for increasing energy level of a creature
+        /// </summary>
+        /// <param name="bonus">amount of bonus energy gained</param>
+        /// <param name="modifier">multiplier for regen value</param>
+        public async Task<int> Gain(int bonus, double modifier)
+        {
+            try
+            {
+                var currentEnergy = Stats.Energy;
+
+                var energyGain = Stats.Regeneration * modifier;
+
+                Stats.Energy += bonus + (int)energyGain;
+
+                if (Stats.Energy > Stats.MaxEnergy)
+                {
+                    Stats.Energy = Stats.MaxEnergy;
+                }
+
+                var totalGain = Stats.Energy - currentEnergy;
+
+                return totalGain;
+            }
+            catch (Exception ex)
+            {
+                return 0;
             }
         }
 

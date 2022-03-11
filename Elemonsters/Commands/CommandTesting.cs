@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Elemonsters.Assets.Creatures;
+using Elemonsters.Factories;
 using Elemonsters.Models;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
@@ -30,6 +31,7 @@ namespace Elemonsters.Commands
         private IInstanceTrackerService _instance;
         private IPartyService _partyService;
         private IBattleService _battleService;
+        private DamageFactory _damageFactory;
 
         #endregion
 
@@ -38,12 +40,14 @@ namespace Elemonsters.Commands
         public CommandTesting(ILockoutService locker,
                               IInstanceTrackerService instance,
                               IPartyService partyService,
-                              IBattleService battleService)
+                              IBattleService battleService,
+                              DamageFactory damageFactory)
         {
             _locker = locker;
             _instance = instance;
             _partyService = partyService;
             _battleService = battleService;
+            _damageFactory = damageFactory;
         }
 
         #endregion
@@ -162,7 +166,8 @@ namespace Elemonsters.Commands
                     Players = players,
                     Context = context,
                     Instance = await _instance.GetInstance(),
-                    Creatures = new List<CreatureBase>()
+                    Creatures = new List<CreatureBase>(),
+                    DamageFactory = _damageFactory
                 };
 
                 await _battleService.BeginBattle(battleContainer);

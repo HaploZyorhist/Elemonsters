@@ -51,6 +51,7 @@ namespace Elemonsters
 
                 // factories
                 .AddSingleton<DamageFactory>()
+                .AddSingleton<StatFactory>()
 
                 // Database
                 //.AddDbContext<LoLBotContext>(options =>

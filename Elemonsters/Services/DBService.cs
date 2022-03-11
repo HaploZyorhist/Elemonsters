@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Elemonsters.Assets.Creatures;
+using Elemonsters.Assets.Creatures.ActiveAbilities;
+using Elemonsters.Assets.Creatures.PassiveAbilities;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 
@@ -56,7 +58,7 @@ namespace Elemonsters.Services
                     stats.MaxHealth = 1000;
                     stats.Health = stats.MaxHealth;
                     stats.MaxEnergy = 100;
-                    stats.Energy = stats.MaxEnergy;
+                    stats.Energy = 0;
                     stats.Strength = 100;
                     stats.Defense = 100;
                     stats.Lethality = 10;
@@ -77,7 +79,7 @@ namespace Elemonsters.Services
                     stats.MaxHealth = 1000;
                     stats.Health = stats.MaxHealth;
                     stats.MaxEnergy = 100;
-                    stats.Energy = stats.MaxEnergy;
+                    stats.Energy = 0;
                     stats.Strength = 100;
                     stats.Defense = 100;
                     stats.Lethality = 10;
@@ -85,7 +87,7 @@ namespace Elemonsters.Services
                     stats.Aura = 200;
                     stats.Sorcery = 10;
                     stats.CritChance = 50;
-                    stats.CritModifier = 1.5;
+                    stats.CritModifier = 5;
                     stats.Dodge = 10;
                     stats.Tenacity = 10;
                     stats.Regeneration = 10;
@@ -103,11 +105,35 @@ namespace Elemonsters.Services
         }
 
         /// <inheritdoc />
-        public async Task<CreatureBase> GetCreatureBase(string creatureName)
+        public async Task<CreatureBase> GetCreatureBase(CreatureBase creature, StatsRequest creatureRequest)
         {
             try
             {
-                CreatureBase creature = new CreatureBase();
+                creature.Abilities.Add(new Ability
+                {
+                    Name = "Basic Attack"
+                });
+
+                creature.Abilities.Add(new Ability
+                {
+                    Name = "Test Passive"
+                });
+
+                var type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "BasicAttackAbility");
+
+                creature.Abilities
+                    .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault()
+                    .ActiveAbility = (ActiveAbility)Activator.CreateInstance(type);
+
+                type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "TestPassive");
+
+                creature.Abilities
+                    .Where(x => string.Equals(x.Name, "Test Passive", StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault()
+                    .PassiveAbility = (PassiveAbility)Activator.CreateInstance(type);
+
+                creature.CreatureID = creatureRequest.CreatureID;
 
                 return creature;
             }
