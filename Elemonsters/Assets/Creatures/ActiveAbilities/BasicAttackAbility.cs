@@ -11,72 +11,67 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
     public class BasicAttackAbility : ActiveAbility
     {
-        public override async Task<List<CombatResults>> Activation(BattleContainer battleContainer, CreatureBase myTurn)
+        public override async Task<ActiveResults> Activation(ActiveRequest request)
         {
             try
             {
+                var results = new ActiveResults();
+                
                 // do targeting
+                var target = request.Container.Creatures.Where(x => x.User != request.MyTurn.User).FirstOrDefault();
 
-                var target = battleContainer.Creatures.Where(x => x.User != myTurn.User).FirstOrDefault();
-
-                var request = new DamageRequest();
+                var damageRequest = new DamageRequest();
 
                 var elementalBonus = new ElementalRequest
                 {
-                    AttackerElements = myTurn.Elements,
+                    AttackerElements = request.MyTurn.Elements,
                     DefenderElements = target.Elements
                 };
 
-                if (myTurn.CreatureID == 0)
+                if (request.MyTurn.CreatureID == 0)
                 {
                     elementalBonus.AttackType = AttackTypeEnum.Magic;
-                    request.AttackType = AttackTypeEnum.Magic;
-                    request.Damage = myTurn.Stats.Spirit;
-                    request.Defense = target.Stats.Aura;
-                    request.Penetration = target.Stats.Sorcery;
-                    request.DamageModifier = 1;
+                    damageRequest.AttackType = AttackTypeEnum.Magic;
+                    damageRequest.Damage = request.MyTurn.Stats.Spirit;
+                    damageRequest.Defense = target.Stats.Aura;
+                    damageRequest.Penetration = target.Stats.Sorcery;
                 }
                 else
                 {
                     elementalBonus.AttackType = AttackTypeEnum.Physical;
-                    request.AttackType = AttackTypeEnum.Physical;
-                    request.Damage = myTurn.Stats.Strength;
-                    request.Defense = target.Stats.Defense;
-                    request.Penetration = target.Stats.Lethality;
-                    request.DamageModifier = 1;
+                    damageRequest.AttackType = AttackTypeEnum.Physical;
+                    damageRequest.Damage = request.MyTurn.Stats.Strength;
+                    damageRequest.Defense = target.Stats.Defense;
+                    damageRequest.Penetration = target.Stats.Lethality;
                 }
+
+                damageRequest.DamageModifier = 1;
+                damageRequest.ElementalRequest = elementalBonus;
 
                 var rand = new Random();
                 var r = rand.Next(0, 100);
 
-                var damageDelt = await battleContainer.DamageFactory.CalculateDamage(request) * await battleContainer.DamageFactory.CheckElementalBonus(elementalBonus);
-                var currentHealth = target.Stats.Health;
-
-                if (r < myTurn.Stats.CritChance)
+                if (r < request.MyTurn.Stats.CritChance)
                 {
-                    damageDelt *= myTurn.Stats.CritModifier;
-                    battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has landed a critical hit");
+                    damageRequest.DamageModifier *= 1.5;
+                    damageRequest.SB.AppendLine($"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has landed a critical hit");
                 }
+
+                var damageDelt = await request.Container.DamageFactory.CalculateDamage(damageRequest) * await request.Container.DamageFactory.CheckElementalBonus(damageRequest.ElementalRequest);
 
                 var roundedDamage = (int)damageDelt;
 
-                target.Stats.Health -= roundedDamage;
-
-                battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has attacked the computer's {target.Name} for {roundedDamage} {request.AttackType} damage, reducing their health from {currentHealth} to {target.Stats.Health}");
-
-                var passiveActivation = myTurn.Abilities
-                    .Where(x => string.Equals(x.PassiveAbility?.ActivationCondition, "this", StringComparison.OrdinalIgnoreCase))?
-                    .ToList();
-
-                if (passiveActivation.Count > 0)
+                var result = new DamageResults
                 {
-                    foreach (var passive in passiveActivation)
-                    {
-                        battleContainer = await passive.PassiveAbility.Passive(battleContainer, myTurn);
-                    }
-                }
+                    AttackType = damageRequest.AttackType,
+                    Damage = roundedDamage,
+                    Target = target,
+                    SB = damageRequest.SB
+                };
 
-                return request;
+                results.DamageResults.Add(result);
+
+                return results;
             }
             catch (Exception ex)
             {

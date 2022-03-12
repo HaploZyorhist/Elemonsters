@@ -10,35 +10,47 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
 {
     public class TestPassive : PassiveAbility
     {
-        public override async Task<List<CombatResults>> Passive(BattleContainer battleContainer, CreatureBase myTurn)
+        public override async Task<PassiveResults> Passive(PassiveRequest request)
         {
-            var target = battleContainer.Creatures.Where(x => x.User != myTurn.User).FirstOrDefault();
+            var targets = request.Targets;
 
-            var request = new DamageRequest();
+            var result = new PassiveResults();
 
-            var elementalBonus = new ElementalRequest
+            foreach (var target in targets)
             {
-                AttackerElements = myTurn.Elements,
-                DefenderElements = target.Elements
-            };
+                var damageRequest = new DamageRequest();
 
-            elementalBonus.AttackType = AttackTypeEnum.Magic;
-            request.AttackType = AttackTypeEnum.Magic;
-            request.Damage = myTurn.Stats.Spirit;
-            request.Defense = target.Stats.Aura;
-            request.Penetration = target.Stats.Sorcery;
-            request.DamageModifier = .35;
+                var elementalBonus = new ElementalRequest
+                {
+                    AttackerElements = request.MyTurn.Elements,
+                    DefenderElements = target.Elements
+                };
 
-            var damageDelt = await battleContainer.DamageFactory.CalculateDamage(request) * await battleContainer.DamageFactory.CheckElementalBonus(elementalBonus);
-            var currentHealth = target.Stats.Health;
+                elementalBonus.AttackType = AttackTypeEnum.Magic;
+                damageRequest.AttackType = AttackTypeEnum.Magic;
+                damageRequest.Damage = request.MyTurn.Stats.Spirit;
+                damageRequest.Defense = target.Stats.Aura;
+                damageRequest.Penetration = target.Stats.Sorcery;
+                damageRequest.DamageModifier = .35;
+                damageRequest.ElementalRequest = elementalBonus;
 
-            var roundedDamage = (int)damageDelt;
+                var damageDelt = await request.Container.DamageFactory.CalculateDamage(damageRequest) *
+                                 await request.Container.DamageFactory.CheckElementalBonus(damageRequest.ElementalRequest);
 
-            target.Stats.Health -= roundedDamage;
+                var roundedDamage = (int) damageDelt;
 
-            battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has dealt bonus damage to the computer's {target.Name} for {roundedDamage} {request.AttackType} damage, reducing their health from {currentHealth} to {target.Stats.Health}");
+                var damageResult = new DamageResults
+                {
+                    AttackType = damageRequest.AttackType,
+                    Damage = roundedDamage,
+                    Target = target,
+                    SB= damageRequest.SB
+                };
 
-            return request;
+                result.DamageResults.Add(damageResult);
+            }
+
+            return result;
         }
     }
 }

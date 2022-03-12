@@ -4,6 +4,7 @@ using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System.Text;
+using Microsoft.VisualBasic;
 
 namespace Elemonsters.Services
 {
@@ -45,6 +46,7 @@ namespace Elemonsters.Services
                 battleContainer.Creatures.AddRange(creatures);
 
                 await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+                battleContainer.SB.Clear();
 
                 // loop while a player's team has 1 member alive
                 var aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
@@ -67,7 +69,7 @@ namespace Elemonsters.Services
                         teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
                         teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
 
-                        if (teamAAliveMembers.Count !> 0 || teamBAliveMembers.Count !> 0)
+                        if (teamAAliveMembers.Count == 0 || teamBAliveMembers.Count == 0)
                         {
                             var sb = teamAAliveMembers.Count > 0
                                 ? $"<@{teamAAliveMembers[0].User}> has won the battle"
@@ -107,15 +109,88 @@ namespace Elemonsters.Services
         {
             try
             {
+                // do active ability
+                // check passives
                 var energyGained = await myTurn.Gain(0, 1);
 
                 battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has gained {energyGained} energy, bringing them to {myTurn.Stats.Energy}");
 
-                battleContainer = await myTurn.Abilities
+                var selectedAbility = myTurn.Abilities
                     .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault()
-                    .ActiveAbility
-                    .Activation(battleContainer, myTurn);
+                    .FirstOrDefault();
+                
+                var activeRequest = new ActiveRequest
+                {
+                    Container = battleContainer,
+                    MyTurn = myTurn,
+                    AbilityName = selectedAbility.Name,
+                    AbilityLevel = selectedAbility.AbilityLevel
+                };
+
+                var activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
+
+                foreach (var result in activeResults.DamageResults)
+                {
+                    battleContainer.SB.Append(result.SB.ToString());
+                }
+
+                var passiveActivations = myTurn.Abilities
+                    .Where(x => x.PassiveAbility != null && 
+                                       string.Equals(x.PassiveAbility.ActivationCondition, "this", StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+                var passivesKicked = new List<PassiveResults>();
+
+                foreach (var passive in passiveActivations)
+                {
+                    var passiveRequest = new PassiveRequest
+                    {
+                        Container = battleContainer,
+                        MyTurn = myTurn,
+                        Targets = activeResults.DamageResults.Select(x => x.Target).ToList(),
+                        AbilityName = passive.Name,
+                        AbilityLevel = passive.AbilityLevel
+                    };
+
+                    var passiveKick = await passive.PassiveAbility.Passive(passiveRequest);
+
+                    passivesKicked.Add(passiveKick);
+                }
+
+                var targetList = activeResults.DamageResults.Select(x => x.Target).Distinct();
+
+                foreach (var target in targetList)
+                {
+                    int totalDamage = 0;
+
+                    var physicalDamage = activeResults.DamageResults
+                        .Where(x => x.Target == target)
+                        .Select(x => x.Damage)
+                        .Sum();
+
+                    var magicDamage = passivesKicked
+                        .Select(x => x.DamageResults
+                            .Where(x => x.Target == target)
+                            .Select(x => x.Damage)
+                            .Sum())
+                        .Sum();
+
+                    var creature = battleContainer.Creatures.Where(x => x.CreatureID == target.CreatureID).FirstOrDefault();
+
+                    var currentHealth = creature.Stats.Health;
+
+                    totalDamage = physicalDamage + magicDamage;
+                    creature.Stats.Health -= totalDamage;
+
+                    battleContainer.SB.AppendLine(
+                        $"<@{creature.User}>'s {creature.Name} has taken {physicalDamage} physical damage");
+
+                    battleContainer.SB.AppendLine(
+                        $"<@{creature.User}>'s {creature.Name} has taken {magicDamage} magic damage");
+
+                    battleContainer.SB.AppendLine(
+                        $"<@{creature.User}>'s {creature.Name} has taken {currentHealth - creature.Stats.Health} total damage, leaving them at {creature.Stats.Health} health");
+                }
 
                 return battleContainer;
             }

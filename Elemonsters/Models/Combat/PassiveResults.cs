@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace Elemonsters.Models.Combat
 {
-    public class CombatResults
+    public class PassiveResults
     {
-        public List<DamageResults> DamageResults { get; set; }
+        public List<DamageResults> DamageResults { get; set; } = new List<DamageResults>();
     }
 }

@@ -9,7 +9,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
     public class ActiveAbility
     {
-        public virtual async Task<List<CombatResults>> Activation(BattleContainer battleContainer, CreatureBase myTurn)
+        public virtual async Task<ActiveResults> Activation(ActiveRequest request)
         {
             throw new NotImplementedException();
         }

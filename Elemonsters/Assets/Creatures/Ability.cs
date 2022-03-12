@@ -20,6 +20,8 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public string Name { get; set; } = "";
 
+        public int AbilityLevel { get; set; } = 0;
+
         public PassiveAbility PassiveAbility { get; set; }
 
         public ActiveAbility ActiveAbility { get; set; }

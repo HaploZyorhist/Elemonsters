@@ -18,6 +18,7 @@ namespace Elemonsters.Models.Combat
         public int Penetration { get; set; }
         public int Defense { get; set; }
         public double DamageModifier { get; set; }
+        public CreatureBase ActiveCreature { get; set; }
         public CreatureBase Target { get; set; }
         public StringBuilder SB { get; set; } = new StringBuilder();
         public ElementalRequest ElementalRequest { get; set; } = new ElementalRequest();
