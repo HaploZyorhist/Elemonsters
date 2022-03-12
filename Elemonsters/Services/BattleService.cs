@@ -67,7 +67,7 @@ namespace Elemonsters.Services
                         teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
                         teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
 
-                        if (teamAAliveMembers.Count !> 0 || teamBAliveMembers.Count > 0)
+                        if (teamAAliveMembers.Count !> 0 || teamBAliveMembers.Count !> 0)
                         {
                             var sb = teamAAliveMembers.Count > 0
                                 ? $"<@{teamAAliveMembers[0].User}> has won the battle"
