@@ -10,7 +10,7 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
 {
     public class TestPassive : PassiveAbility
     {
-        public override async Task<BattleContainer> Passive(BattleContainer battleContainer, CreatureBase myTurn)
+        public override async Task<List<CombatResults>> Passive(BattleContainer battleContainer, CreatureBase myTurn)
         {
             var target = battleContainer.Creatures.Where(x => x.User != myTurn.User).FirstOrDefault();
 
@@ -38,7 +38,7 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
 
             battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has dealt bonus damage to the computer's {target.Name} for {roundedDamage} {request.AttackType} damage, reducing their health from {currentHealth} to {target.Stats.Health}");
 
-            return battleContainer;
+            return request;
         }
     }
 }

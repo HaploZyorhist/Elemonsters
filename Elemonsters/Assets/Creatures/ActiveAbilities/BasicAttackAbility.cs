@@ -11,7 +11,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
     public class BasicAttackAbility : ActiveAbility
     {
-        public override async Task<BattleContainer> Activation(BattleContainer battleContainer, CreatureBase myTurn)
+        public override async Task<List<CombatResults>> Activation(BattleContainer battleContainer, CreatureBase myTurn)
         {
             try
             {
@@ -76,7 +76,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     }
                 }
 
-                return battleContainer;
+                return request;
             }
             catch (Exception ex)
             {

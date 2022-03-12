@@ -14,7 +14,7 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
     {
         public string ActivationCondition = "this";
 
-        public virtual async Task<BattleContainer> Passive(BattleContainer battle, CreatureBase myTurn)
+        public virtual async Task<List<CombatResults>> Passive(BattleContainer battle, CreatureBase myTurn)
         {
             throw new NotImplementedException();
         }

@@ -8,16 +8,11 @@ using System.Threading.Tasks;
 
 namespace Elemonsters.Models.Combat
 {
-    /// <summary>
-    /// object containing data for requesting damage information
-    /// </summary>
-    public class DamageRequest
+    public class DamageResults
     {
         public AttackTypeEnum AttackType { get; set; }
+        // trigger type
         public int Damage { get; set; }
-        public int Penetration { get; set; }
-        public int Defense { get; set; }
-        public double DamageModifier { get; set; }
         public CreatureBase Target { get; set; }
         public StringBuilder SB { get; set; } = new StringBuilder();
         public ElementalRequest ElementalRequest { get; set; } = new ElementalRequest();
