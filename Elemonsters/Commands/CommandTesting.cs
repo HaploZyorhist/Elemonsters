@@ -149,7 +149,7 @@ namespace Elemonsters.Commands
             }
         }
 
-        [Command("Battle")]
+        [Command("Battle", RunMode = RunMode.Async)]
         [Summary("This command is used for testing battle flow")]
         public async Task BattleTestCommand()
         {

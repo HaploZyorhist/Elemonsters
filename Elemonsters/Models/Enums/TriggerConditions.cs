@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace Elemonsters.Models.Enums
 {
-    public enum AttackTypeEnum
+    public enum TriggerConditions
     {
         None,
-        Physical,
-        Magic,
-        True
+        OnHit,
+        SpellEffect,
+        DamageDealt,
+        DamageTaken,
+        SpellCast,
     }
 }

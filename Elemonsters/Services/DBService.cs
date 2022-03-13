@@ -111,27 +111,49 @@ namespace Elemonsters.Services
             {
                 creature.Abilities.Add(new Ability
                 {
-                    Name = "Basic Attack"
+                    Name = "Basic Attack",
+                    AbilityLevel = 1,
+                    AbilityType = AbilityTypes.BasicAttack
                 });
 
                 creature.Abilities.Add(new Ability
                 {
-                    Name = "Test Passive"
+                    Name = "Test Passive",
+                    AbilityLevel = 1,
+                    AbilityType = AbilityTypes.Passive
+                });
+
+                creature.Abilities.Add(new Ability
+                {
+                    Name = "Test Shielding",
+                    AbilityLevel = 1,
+                    AbilityType = AbilityTypes.FirstAbility
                 });
 
                 var type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "BasicAttackAbility");
 
-                creature.Abilities
+                var basicAttackAbility = creature.Abilities
                     .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault()
-                    .ActiveAbility = (ActiveAbility)Activator.CreateInstance(type);
+                    .FirstOrDefault();
+
+                basicAttackAbility.ActiveAbility = (ActiveAbility)Activator.CreateInstance(type);
 
                 type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "TestPassive");
 
-                creature.Abilities
+                var passiveAbility = creature.Abilities
                     .Where(x => string.Equals(x.Name, "Test Passive", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault()
-                    .PassiveAbility = (PassiveAbility)Activator.CreateInstance(type);
+                    .FirstOrDefault();
+
+                passiveAbility.PassiveAbility = (PassiveAbility)Activator.CreateInstance(type);
+                passiveAbility.PassiveAbility.TriggerConditions = TriggerConditions.OnHit;
+
+                type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "GenerateShieldAbility");
+
+                var firstAbility = creature.Abilities
+                    .Where(x => string.Equals(x.Name, "Test Shielding", StringComparison.OrdinalIgnoreCase))
+                    .FirstOrDefault();
+
+                firstAbility.ActiveAbility = (ActiveAbility)Activator.CreateInstance(type);
 
                 creature.CreatureID = creatureRequest.CreatureID;
 

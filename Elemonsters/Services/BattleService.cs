@@ -1,9 +1,11 @@
-﻿using Elemonsters.Assets.Creatures;
+﻿using System.Security.Cryptography.X509Certificates;
+using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System.Text;
+using Interactivity;
 using Microsoft.VisualBasic;
 
 namespace Elemonsters.Services
@@ -15,12 +17,15 @@ namespace Elemonsters.Services
     {
         private readonly IPartyService _partyService;
         private readonly DamageFactory _damageFactory;
+        private readonly InteractivityService _interact;
 
         public BattleService(IPartyService partyService,
-                             DamageFactory damageFactory)
+                             DamageFactory damageFactory,
+                             InteractivityService interact)
         {
             _partyService = partyService;
             _damageFactory = damageFactory;
+            _interact = interact;
         }
 
         /// <inheritdoc />
@@ -36,7 +41,7 @@ namespace Elemonsters.Services
 
                 var creatures = new List<CreatureBase>();
 
-                foreach(var player in battleContainer.Players)
+                foreach (var player in battleContainer.Players)
                 {
                     var party = await _partyService.GetParty(player.Id);
                     creatures.AddRange(party);
@@ -53,12 +58,17 @@ namespace Elemonsters.Services
                 var teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
                 var teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
 
-                while(teamAAliveMembers.Count > 0 && teamBAliveMembers.Count > 0)
+                while (teamAAliveMembers.Count > 0 && teamBAliveMembers.Count > 0)
                 {
-                    
-                    var creaturesToTurn = aliveCreatures.Where(x => x.ActionPoints >= 100).OrderBy(x => x.ActionPoints).ThenBy(x => x.Stats.Speed).ToList();
 
-                    foreach(var myTurn in creaturesToTurn)
+                    var creaturesToTurn = aliveCreatures.Where(x => x.ActionPoints >= 100)
+                        .OrderBy(x => x.ActionPoints)
+                        .ThenBy(x => x.Stats.Speed)
+                        .ThenByDescending(x => x.Level)
+                        .ThenBy(x => x.CreatureID)
+                        .ToList();
+
+                    foreach (var myTurn in creaturesToTurn)
                     {
                         battleContainer = await PerformTurn(battleContainer, myTurn);
 
@@ -79,7 +89,7 @@ namespace Elemonsters.Services
                         }
                     }
 
-                    foreach(var alive in aliveCreatures)
+                    foreach (var alive in aliveCreatures)
                     {
                         await alive.Tick();
                     }
@@ -109,16 +119,61 @@ namespace Elemonsters.Services
         {
             try
             {
-                // do active ability
-                // check passives
                 var energyGained = await myTurn.Gain(0, 1);
+
+                foreach (var status in myTurn.Statuses)
+                {
+                    status.Duration -= 1;
+                }
+
+                var timedoutStatuss = myTurn.Statuses.Where(x => x.Duration < 1).ToList();
+
+                foreach (var status in timedoutStatuss)
+                {
+                    battleContainer.SB.AppendLine($"{status.Name} has timed out");
+                }
+
+                myTurn.Statuses.RemoveAll(x => x.Duration < 1);
 
                 battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has gained {energyGained} energy, bringing them to {myTurn.Stats.Energy}");
 
-                var selectedAbility = myTurn.Abilities
-                    .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault();
-                
+                Ability selectedAbility = null;
+
+                if (myTurn.User != 947509644706869269)
+                {
+                    var abilityOptions = myTurn.Abilities
+                        .Where(x => x.ActiveAbility != null)
+                        .ToList();
+
+                    battleContainer.SB.AppendLine(
+                        $"<@{myTurn.User}> please select an ability.");
+
+                    for (int i = 0; i < abilityOptions.Count; i++)
+                    {
+                        battleContainer.SB.AppendLine($"{i + 1}: {abilityOptions[i].Name}");
+                    }
+
+                    await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+
+                    battleContainer.SB.Clear();
+
+                    var response = await _interact.NextMessageAsync(x => x.Author.Id == myTurn.User &&
+                                                                                                                       x.Channel == battleContainer.Context.Channel);
+
+                    if (response.IsSuccess)
+                    {
+                        var selection = int.Parse(response.Value.Content);
+
+                        selectedAbility = abilityOptions[selection - 1];
+                    }
+                }
+                else
+                {
+                    selectedAbility = myTurn.Abilities
+                        .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
+                        .FirstOrDefault();
+                }
+
                 var activeRequest = new ActiveRequest
                 {
                     Container = battleContainer,
@@ -129,15 +184,21 @@ namespace Elemonsters.Services
 
                 var activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
 
+                battleContainer = activeResults.Container;
+
                 foreach (var result in activeResults.DamageResults)
                 {
                     battleContainer.SB.Append(result.SB.ToString());
                 }
 
-                var passiveActivations = myTurn.Abilities
-                    .Where(x => x.PassiveAbility != null && 
-                                       string.Equals(x.PassiveAbility.ActivationCondition, "this", StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                var passiveActivations = new List<Ability>();
+
+                foreach (var trigger in activeResults.DamageResults)
+                {
+                    passiveActivations = myTurn.Abilities
+                        .Where(x => x.PassiveAbility?.TriggerConditions == trigger.Trigger)
+                        .ToList();
+                }
 
                 var passivesKicked = new List<PassiveResults>();
 
@@ -164,13 +225,29 @@ namespace Elemonsters.Services
                     int totalDamage = 0;
 
                     var physicalDamage = activeResults.DamageResults
-                        .Where(x => x.Target == target)
+                        .Where(x => x.Target == target && 
+                                    x.AttackType == AttackTypeEnum.Physical)
                         .Select(x => x.Damage)
                         .Sum();
 
-                    var magicDamage = passivesKicked
+                    physicalDamage += passivesKicked
                         .Select(x => x.DamageResults
-                            .Where(x => x.Target == target)
+                            .Where(x => x.Target == target &&
+                                        x.AttackType == AttackTypeEnum.Physical)
+                            .Select(x => x.Damage)
+                            .Sum())
+                        .Sum();
+
+                    var magicDamage = activeResults.DamageResults
+                        .Where(x => x.Target == target &&
+                                    x.AttackType == AttackTypeEnum.Magic)
+                        .Select(x => x.Damage)
+                        .Sum();
+
+                    magicDamage += passivesKicked
+                        .Select(x => x.DamageResults
+                            .Where(x => x.Target == target &&
+                                        x.AttackType == AttackTypeEnum.Magic)
                             .Select(x => x.Damage)
                             .Sum())
                         .Sum();
@@ -179,22 +256,112 @@ namespace Elemonsters.Services
 
                     var currentHealth = creature.Stats.Health;
 
+                    var elementalShield = creature.Statuses.Where(x => x.Type == EffectTypes.ElementalShield)
+                        .FirstOrDefault();
+
+                    var physicalShield = creature.Statuses.Where(x => x.Type == EffectTypes.PhysicalShield)
+                        .FirstOrDefault();
+
+                    var generalShield = creature.Statuses.Where(x => x.Type == EffectTypes.GeneralShield)
+                        .FirstOrDefault();
+
+                    int remainingDamage;
+
+                    if (elementalShield != null && magicDamage > 0)
+                    {
+                        remainingDamage = 0;
+
+                        var currentShield = elementalShield.Value;
+
+                        elementalShield.Value -= magicDamage;
+
+                        if (elementalShield.Value < 0)
+                        {
+                            remainingDamage = -elementalShield.Value;
+                            elementalShield.Value = 0;
+                        }
+
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {magicDamage} elemental damage. Their elemental shield blocked {currentShield - elementalShield.Value}");
+
+                        battleContainer.SB.AppendLine(
+                            $"{creature.Name} has {elementalShield.Value} remaining elemental shield");
+
+                        magicDamage = remainingDamage;
+                    }
+                    else if (magicDamage > 0)
+                    {
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {magicDamage} elemental damage");
+                    }
+
+                    if (physicalShield != null && physicalDamage > 0)
+                    {
+                        remainingDamage = 0;
+
+                        var currentShield = physicalShield.Value;
+
+                        physicalShield.Value -= physicalDamage;
+
+                        if (physicalShield.Value < 0)
+                        {
+                            remainingDamage = -physicalShield.Value;
+                            physicalShield.Value = 0;
+                        }
+
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {physicalDamage} physical damage. Their physical shield blocked {currentShield - physicalShield.Value}");
+
+                        battleContainer.SB.AppendLine(
+                            $"{creature.Name} has {physicalShield.Value} remaining physical shield");
+
+                        physicalDamage = remainingDamage;
+                    }
+                    else if (physicalDamage > 0)
+                    {
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {physicalDamage} physical damage");
+                    }
+
                     totalDamage = physicalDamage + magicDamage;
-                    creature.Stats.Health -= totalDamage;
 
-                    battleContainer.SB.AppendLine(
-                        $"<@{creature.User}>'s {creature.Name} has taken {physicalDamage} physical damage");
+                    if (generalShield != null && totalDamage > 0)
+                    {
+                        remainingDamage = 0;
 
-                    battleContainer.SB.AppendLine(
-                        $"<@{creature.User}>'s {creature.Name} has taken {magicDamage} magic damage");
+                        var currentShield = generalShield.Value;
 
-                    battleContainer.SB.AppendLine(
-                        $"<@{creature.User}>'s {creature.Name} has taken {currentHealth - creature.Stats.Health} total damage, leaving them at {creature.Stats.Health} health");
+                        generalShield.Value -= totalDamage;
+
+                        if (generalShield.Value < 0)
+                        {
+                            remainingDamage = -generalShield.Value;
+                            generalShield.Value = 0;
+                        }
+
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {totalDamage} remaining damage. Their general shield blocked {currentShield - generalShield.Value}");
+
+                        battleContainer.SB.AppendLine(
+                            $"{creature.Name} has {generalShield.Value} remaining general shield");
+
+                        totalDamage = remainingDamage;
+                    }
+                    else if (totalDamage > 0)
+                    {
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {totalDamage} remaining damage");
+
+                        creature.Stats.Health -= totalDamage;
+
+                        battleContainer.SB.AppendLine(
+                            $"<@{creature.User}>'s {creature.Name} has taken {currentHealth - creature.Stats.Health} total damage, leaving them at {creature.Stats.Health} health");
+                    }
                 }
 
                 return battleContainer;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return null;
             }

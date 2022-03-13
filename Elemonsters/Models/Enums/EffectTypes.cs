@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace Elemonsters.Models.Enums
 {
-    public enum AttackTypeEnum
+    public enum EffectTypes
     {
-        None,
-        Physical,
-        Magic,
-        True
+        GeneralShield,
+        PhysicalShield,
+        ElementalShield,
     }
 }

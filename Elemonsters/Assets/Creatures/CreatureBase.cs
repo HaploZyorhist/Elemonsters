@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Factories;
 
 namespace Elemonsters.Assets.Creatures
@@ -60,6 +61,8 @@ namespace Elemonsters.Assets.Creatures
         /// The creature's abilities
         /// </summary>
         public List<Ability> Abilities { get; set; } = new List<Ability>();
+
+        public List<StatusEffect> Statuses { get; set; } = new List<StatusEffect>();
 
         #endregion
 

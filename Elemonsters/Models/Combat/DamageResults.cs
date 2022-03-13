@@ -11,7 +11,7 @@ namespace Elemonsters.Models.Combat
     public class DamageResults
     {
         public AttackTypeEnum AttackType { get; set; }
-        // trigger type
+        public TriggerConditions Trigger { get; set; } = TriggerConditions.None;
         public int Damage { get; set; }
         public CreatureBase Target { get; set; }
         public StringBuilder SB { get; set; } = new StringBuilder();

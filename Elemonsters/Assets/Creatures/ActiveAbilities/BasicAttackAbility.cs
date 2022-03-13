@@ -16,7 +16,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
             try
             {
                 var results = new ActiveResults();
-                
+
                 // do targeting
                 var target = request.Container.Creatures.Where(x => x.User != request.MyTurn.User).FirstOrDefault();
 
@@ -28,22 +28,11 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     DefenderElements = target.Elements
                 };
 
-                if (request.MyTurn.CreatureID == 0)
-                {
-                    elementalBonus.AttackType = AttackTypeEnum.Magic;
-                    damageRequest.AttackType = AttackTypeEnum.Magic;
-                    damageRequest.Damage = request.MyTurn.Stats.Spirit;
-                    damageRequest.Defense = target.Stats.Aura;
-                    damageRequest.Penetration = target.Stats.Sorcery;
-                }
-                else
-                {
-                    elementalBonus.AttackType = AttackTypeEnum.Physical;
-                    damageRequest.AttackType = AttackTypeEnum.Physical;
-                    damageRequest.Damage = request.MyTurn.Stats.Strength;
-                    damageRequest.Defense = target.Stats.Defense;
-                    damageRequest.Penetration = target.Stats.Lethality;
-                }
+                elementalBonus.AttackType = AttackTypeEnum.Physical;
+                damageRequest.AttackType = AttackTypeEnum.Physical;
+                damageRequest.Damage = request.MyTurn.Stats.Strength;
+                damageRequest.Defense = target.Stats.Defense;
+                damageRequest.Penetration = target.Stats.Lethality;
 
                 damageRequest.DamageModifier = 1;
                 damageRequest.ElementalRequest = elementalBonus;
@@ -66,9 +55,11 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     AttackType = damageRequest.AttackType,
                     Damage = roundedDamage,
                     Target = target,
-                    SB = damageRequest.SB
+                    SB = damageRequest.SB,
+                    Trigger = TriggerConditions.OnHit
                 };
 
+                results.Container = request.Container;
                 results.DamageResults.Add(result);
 
                 return results;

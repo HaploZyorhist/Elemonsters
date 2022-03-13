@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 
 namespace Elemonsters.Models.Enums
 {
-    public enum AttackTypeEnum
+    public enum AbilityTypes
     {
-        None,
-        Physical,
-        Magic,
-        True
+        Leader,
+        Passive,
+        BasicAttack,
+        FirstAbility,
+        SecondAbility,
+        ThirdAbility
     }
 }

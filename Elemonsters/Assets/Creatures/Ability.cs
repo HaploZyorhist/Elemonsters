@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Elemonsters.Assets.Creatures.ActiveAbilities;
 using Elemonsters.Assets.Creatures.PassiveAbilities;
 using Elemonsters.Factories;
+using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures
 {
@@ -21,6 +22,8 @@ namespace Elemonsters.Assets.Creatures
         public string Name { get; set; } = "";
 
         public int AbilityLevel { get; set; } = 0;
+
+        public AbilityTypes AbilityType { get; set; }
 
         public PassiveAbility PassiveAbility { get; set; }
 
