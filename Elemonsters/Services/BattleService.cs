@@ -7,6 +7,7 @@ using Elemonsters.Services.Interfaces;
 using System.Text;
 using Interactivity;
 using Microsoft.VisualBasic;
+using Elemonsters.Models.Chat;
 
 namespace Elemonsters.Services
 {
@@ -18,14 +19,17 @@ namespace Elemonsters.Services
         private readonly IPartyService _partyService;
         private readonly DamageFactory _damageFactory;
         private readonly InteractivityService _interact;
+        private readonly IChatService _chatService;
 
         public BattleService(IPartyService partyService,
                              DamageFactory damageFactory,
-                             InteractivityService interact)
+                             InteractivityService interact,
+                             IChatService chatService)
         {
             _partyService = partyService;
             _damageFactory = damageFactory;
             _interact = interact;
+            _chatService = chatService;
         }
 
         /// <inheritdoc />
@@ -72,6 +76,11 @@ namespace Elemonsters.Services
                     {
                         battleContainer = await PerformTurn(battleContainer, myTurn);
 
+                        if (battleContainer == null)
+                        {
+                            throw new Exception("PerformTurn has returned null");
+                        }
+
                         myTurn.ActionPoints -= 100;
                         battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has taken a turn and reduced their action points by 100");
 
@@ -87,17 +96,17 @@ namespace Elemonsters.Services
                             battleContainer.SB.AppendLine(sb);
                             break;
                         }
+
+                        if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
+                        {
+                            await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+                            battleContainer.SB.Clear();
+                        }
                     }
 
                     foreach (var alive in aliveCreatures)
                     {
                         await alive.Tick();
-                    }
-
-                    if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
-                    {
-                        await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
-                        battleContainer.SB.Clear();
                     }
                 }
 
@@ -105,6 +114,8 @@ namespace Elemonsters.Services
             }
             catch (Exception ex)
             {
+                // await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
+
                 return;
             }
         }
@@ -115,63 +126,26 @@ namespace Elemonsters.Services
         /// <param name="battleContainer">the state of the battle</param>
         /// <param name="myTurn">the creature who is taking their turn</param>
         /// <returns>updated map state</returns>
-        public async Task<BattleContainer> PerformTurn(BattleContainer battleContainer, CreatureBase myTurn)
+        private async Task<BattleContainer> PerformTurn(BattleContainer battleContainer, CreatureBase myTurn)
         {
             try
             {
+                // step 1, gain energy
                 var energyGained = await myTurn.Gain(0, 1);
-
-                foreach (var status in myTurn.Statuses)
-                {
-                    status.Duration -= 1;
-                }
-
-                var timedoutStatuss = myTurn.Statuses.Where(x => x.Duration < 1).ToList();
-
-                foreach (var status in timedoutStatuss)
-                {
-                    battleContainer.SB.AppendLine($"{status.Name} has timed out");
-                }
-
-                myTurn.Statuses.RemoveAll(x => x.Duration < 1);
 
                 battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has gained {energyGained} energy, bringing them to {myTurn.Stats.Energy}");
 
-                Ability selectedAbility = null;
+                // step 2 countdown statuses
+                var statusRemoval = await CountdownStatuses(myTurn);
 
-                if (myTurn.User != 947509644706869269)
+                battleContainer.SB.Append(statusRemoval.SB.ToString());
+
+                // step 3 select and ability to use
+                var selectedAbility = await SelectAbility(battleContainer, myTurn);
+
+                if (selectedAbility == null)
                 {
-                    var abilityOptions = myTurn.Abilities
-                        .Where(x => x.ActiveAbility != null)
-                        .ToList();
-
-                    battleContainer.SB.AppendLine(
-                        $"<@{myTurn.User}> please select an ability.");
-
-                    for (int i = 0; i < abilityOptions.Count; i++)
-                    {
-                        battleContainer.SB.AppendLine($"{i + 1}: {abilityOptions[i].Name}");
-                    }
-
-                    await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
-
-                    battleContainer.SB.Clear();
-
-                    var response = await _interact.NextMessageAsync(x => x.Author.Id == myTurn.User &&
-                                                                                                                       x.Channel == battleContainer.Context.Channel);
-
-                    if (response.IsSuccess)
-                    {
-                        var selection = int.Parse(response.Value.Content);
-
-                        selectedAbility = abilityOptions[selection - 1];
-                    }
-                }
-                else
-                {
-                    selectedAbility = myTurn.Abilities
-                        .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
-                        .FirstOrDefault();
+                    throw new Exception($"<@{myTurn.User}> failed to select an ability properly");
                 }
 
                 var activeRequest = new ActiveRequest
@@ -225,7 +199,7 @@ namespace Elemonsters.Services
                     int totalDamage = 0;
 
                     var physicalDamage = activeResults.DamageResults
-                        .Where(x => x.Target == target && 
+                        .Where(x => x.Target == target &&
                                     x.AttackType == AttackTypeEnum.Physical)
                         .Select(x => x.Damage)
                         .Sum();
@@ -363,8 +337,134 @@ namespace Elemonsters.Services
             }
             catch (Exception ex)
             {
+                await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
+
                 return null;
             }
+        }
+
+        /// <summary>
+        /// method for counting down status effects
+        /// </summary>
+        /// <param name="myTurn">creature who is having statuses counted down</param>
+        /// <returns>object with the results of the status countdown</returns>
+        private async Task<StatusCountdownReturn> CountdownStatuses(CreatureBase myTurn)
+        {
+            try
+            {
+                StatusCountdownReturn countdownReturn = new StatusCountdownReturn();
+
+                foreach (var status in myTurn.Statuses)
+                {
+                    status.Duration -= 1;
+                }
+
+                var timedoutStatuss = myTurn.Statuses.Where(x => x.Duration < 1).ToList();
+
+                foreach (var status in timedoutStatuss)
+                {
+                    countdownReturn.SB.AppendLine($"{status.Name} has timed out");
+                }
+
+                myTurn.Statuses.RemoveAll(x => x.Duration < 1);
+
+                countdownReturn.MyTurn = myTurn;
+
+                return countdownReturn;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// method for selecting abilities
+        /// </summary>
+        /// <param name="battleContainer">container for the battle details</param>
+        /// <param name="myTurn">creature who's turn it is</param>
+        /// <returns>an ability that is available to the player</returns>
+        private async Task<Ability> SelectAbility(BattleContainer battleContainer, CreatureBase myTurn)
+        {
+            try
+            {
+                Ability selectedAbility = null;
+
+                if (myTurn.User == 947509644706869269)
+                {
+                    //TODO move this to AI Service
+
+                    selectedAbility = myTurn.Abilities
+                        .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
+                        .FirstOrDefault();
+                }
+                else
+                {
+                    while (selectedAbility == null)
+                    {
+                        var abilityOptions = myTurn.Abilities
+                                .Where(x => x.ActiveAbility != null)
+                                .ToList();
+
+                        battleContainer.SB.AppendLine(
+                            $"<@{myTurn.User}> please select an ability.");
+
+                        for (int i = 0; i < abilityOptions.Count; i++)
+                        {
+                            battleContainer.SB.AppendLine($"{i + 1}: {abilityOptions[i].Name}");
+                        }
+
+                        var playerResponseRequest = new PlayerResponseRequest
+                        {
+                            Context = battleContainer.Context,
+                            User = myTurn.User,
+                            Message = battleContainer.SB.ToString(),
+                        };
+
+                        var response = await _chatService.GetPlayerResponse(playerResponseRequest);
+
+                        battleContainer.SB.Clear();
+
+                        if (response == null)
+                        {
+                            throw new Exception($"<@{myTurn.User}> has left the battle");
+                        }
+                        else if (!int.TryParse(response, out int intResponse) ||
+                                 intResponse > abilityOptions.Count ||
+                                 intResponse < 1)
+                        {
+                            battleContainer.SB.AppendLine($"<@{myTurn.User}> please enter a valid selection");
+                        }
+                        else
+                        {
+                            selectedAbility = abilityOptions[intResponse - 1];
+                        }
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
+                {
+                    await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+                    battleContainer.SB.Clear();
+                }
+
+                return selectedAbility;
+            }
+            catch (Exception ex)
+            {
+                await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
+
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// method for triggering effects
+        /// </summary>
+        /// <returns></returns>
+        public async Task TriggerPassives()
+        {
+
         }
     }
 }

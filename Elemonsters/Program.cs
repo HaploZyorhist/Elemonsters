@@ -38,7 +38,7 @@ namespace Elemonsters
                 .AddSingleton(_client)
                 .AddSingleton<CommandService>()
                 .AddSingleton<InteractivityService>()
-                .AddSingleton(new InteractivityConfig { DefaultTimeout = TimeSpan.FromSeconds(30) })
+                .AddSingleton(new InteractivityConfig { DefaultTimeout = TimeSpan.FromSeconds(15) })
 
                 // Custom Services
                 .AddSingleton<CommandHandlerService>()
@@ -48,6 +48,8 @@ namespace Elemonsters
                 .AddSingleton<ICreatureService, CreatureService>()
                 .AddSingleton<IInstanceTrackerService, InstanceTrackerService>()
                 .AddSingleton<IPartyService, PartyService>()
+                .AddSingleton<IAIService, AIService>()
+                .AddSingleton<IChatService, ChatService>()
 
                 // factories
                 .AddSingleton<DamageFactory>()
