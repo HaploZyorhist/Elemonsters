@@ -8,6 +8,7 @@ using Elemonsters.Models.Combat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
@@ -21,6 +22,12 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
         {
             try
             {
+                // cannot perform an attack against nothing
+                if (request.Targets.Count == 0)
+                {
+                    throw new Exception("There were no targets to select from");
+                }
+
                 // only hits the selected target
                 var target = request.Targets.First();
 

@@ -1,13 +1,10 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Elemonsters.Assets.Creatures;
+﻿using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System.Text;
 using Discord.Commands;
-using Interactivity;
-using Microsoft.VisualBasic;
 using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
@@ -21,7 +18,6 @@ namespace Elemonsters.Services
     {
         private readonly IPartyService _partyService;
         private readonly DamageFactory _damageFactory;
-        private readonly InteractivityService _interact;
         private readonly IChatService _chatService;
 
         public ICommandContext Context;
@@ -29,12 +25,10 @@ namespace Elemonsters.Services
 
         public BattleService(IPartyService partyService,
                              DamageFactory damageFactory,
-                             InteractivityService interact,
                              IChatService chatService)
         {
             _partyService = partyService;
             _damageFactory = damageFactory;
-            _interact = interact;
             _chatService = chatService;
         }
 
@@ -181,37 +175,48 @@ namespace Elemonsters.Services
 
                 battleContainer.SB.Append(statusRemoval.SB.ToString());
 
-                // step 3 select and ability to use
-                var selectedAbility = await SelectAbility(battleContainer, myTurn);
+                // loop through this until an ability can successfully be performed
+                ActiveResult activeResults = null;
 
-                if (selectedAbility == null)
+                while (activeResults == null)
                 {
-                    throw new Exception($"<@{myTurn.User}> failed to select an ability properly");
+                    // step 3 select and ability to use
+                    var selectedAbility = await SelectAbility(myTurn);
+
+                    if (selectedAbility == null)
+                    {
+                        throw new Exception($"<@{myTurn.User}> failed to select an ability properly");
+                    }
+
+                    // step 4 get target options
+                    var targetsRequest = new GetTargetsRequest
+                    {
+                        MyTurn = myTurn,
+                        Targets = battleContainer.Creatures
+                    };
+                    var targetOptions = await selectedAbility.ActiveAbility.GetTargetOptions(targetsRequest);
+
+                    // step 5 get player response for targets
+                    var targets = new List<CreatureBase>();
+
+                    if (targetOptions.TotalTargets > 0)
+                    {
+                        targets = await SelectTargets(targetOptions, myTurn);
+                    }
+
+                    // step 6 get results of the activated ability
+                    var activeRequest = new ActiveRequest
+                    {
+                        MyTurn = myTurn,
+                        AbilityName = selectedAbility.Name,
+                        AbilityLevel = selectedAbility.AbilityLevel,
+                        Targets = targets
+                    };
+
+                    activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
                 }
 
-                // step 4 get target options
-                var targetsRequest = new GetTargetsRequest
-                {
-                    MyTurn = myTurn,
-                    Targets = battleContainer.Creatures
-                };
-                var targetOptions = await selectedAbility.ActiveAbility.GetTargetOptions(targetsRequest);
-
-                // TODO Get player response for target selection
-                var targets = targetOptions.FirstOption;
-
-                // step 5 get results of the activated ability
-                var activeRequest = new ActiveRequest
-                {
-                    MyTurn = myTurn,
-                    AbilityName = selectedAbility.Name,
-                    AbilityLevel = selectedAbility.AbilityLevel,
-                    Targets = targets
-                };
-
-                var activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
-
-                // step 6 do things from the abilities
+                // step 7 do things from the abilities
                 foreach (var result in activeResults.DamageRequests)
                 {
                     battleContainer.SB.Append(result.SB.ToString());
@@ -434,10 +439,12 @@ namespace Elemonsters.Services
         /// <param name="battleContainer">container for the battle details</param>
         /// <param name="myTurn">creature who's turn it is</param>
         /// <returns>an ability that is available to the player</returns>
-        private async Task<Ability> SelectAbility(BattleContainer battleContainer, CreatureBase myTurn)
+        private async Task<Ability> SelectAbility(CreatureBase myTurn)
         {
             try
             {
+                var sb = new StringBuilder();
+
                 Ability selectedAbility = null;
 
                 if (myTurn.User == 947509644706869269)
@@ -456,23 +463,23 @@ namespace Elemonsters.Services
                                 .Where(x => x.ActiveAbility != null)
                                 .ToList();
 
-                        battleContainer.SB.AppendLine(
+                        sb.AppendLine(
                             $"<@{myTurn.User}> please select an ability.");
 
                         for (int i = 0; i < abilityOptions.Count; i++)
                         {
-                            battleContainer.SB.AppendLine($"{i + 1}: {abilityOptions[i].Name}");
+                            sb.AppendLine($"{i + 1}: {abilityOptions[i].Name}");
                         }
 
                         var playerResponseRequest = new PlayerResponseRequest
                         {
                             User = myTurn.User,
-                            Message = battleContainer.SB.ToString(),
+                            Message = sb.ToString(),
                         };
 
                         var response = await _chatService.GetPlayerResponse(playerResponseRequest);
 
-                        battleContainer.SB.Clear();
+                        sb.Clear();
 
                         if (response == null)
                         {
@@ -482,7 +489,7 @@ namespace Elemonsters.Services
                                  intResponse > abilityOptions.Count ||
                                  intResponse < 1)
                         {
-                            battleContainer.SB.AppendLine($"<@{myTurn.User}> please enter a valid selection");
+                            sb.AppendLine($"<@{myTurn.User}> please enter a valid selection");
                         }
                         else
                         {
@@ -491,10 +498,9 @@ namespace Elemonsters.Services
                     }
                 }
 
-                if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
+                if (!string.IsNullOrEmpty(sb.ToString()))
                 {
-                    await Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
-                    battleContainer.SB.Clear();
+                    await Context.Channel.SendMessageAsync(sb.ToString());
                 }
 
                 return selectedAbility;
@@ -508,10 +514,146 @@ namespace Elemonsters.Services
         }
 
         /// <summary>
+        /// method for having player select targets for their abilities
+        /// </summary>
+        /// <param name="targetOptions">the options given to the player</param>
+        /// <param name="myTurn">creature who is taking the turn</param>
+        /// <returns>list of target options the player has selected</returns>
+        private async Task<List<CreatureBase>> SelectTargets(GetTargetsResult targetOptions, CreatureBase myTurn)
+        {
+            try
+            {
+                var playerResponse = new PlayerResponseRequest
+                {
+                    Context = Context,
+                    User = myTurn.User,
+                };
+
+                var sb = new StringBuilder();
+
+                var targets = new List<CreatureBase>();
+                var firstSelection = new List<CreatureBase>();
+                var secondSelection = new List<CreatureBase>();
+                var thirdSelection = new List<CreatureBase>();
+
+                while (firstSelection.Count < targetOptions.FirstOptionTargets &&
+                       targetOptions.FirstOption.Count > 0)
+                {
+                    sb.AppendLine($"<@{myTurn.User}> please select an enemy to attack");
+
+                    for (var i = 0; i < targetOptions.FirstOption.Count; i++)
+                    {
+                        sb.AppendLine($"{i + 1}: {targetOptions.FirstOption[i].Name}");
+                    }
+
+                    playerResponse.Message = sb.ToString();
+
+                    var chosenTargets = await _chatService.GetPlayerResponse(playerResponse);
+
+                    sb.Clear();
+
+                    if (chosenTargets == null)
+                    {
+                        throw new Exception($"<@{myTurn.User}> has left the battle");
+                    }
+                    else if (!int.TryParse(chosenTargets, out int intResponse) ||
+                             intResponse > targetOptions.FirstOption.Count ||
+                             intResponse < 1)
+                    {
+                        sb.AppendLine($"<@{myTurn.User}> please enter a valid selection");
+                    }
+                    else
+                    {
+                        firstSelection.Add(targetOptions.FirstOption[intResponse - 1]);
+                        targetOptions.FirstOption.Remove(targetOptions.FirstOption[intResponse - 1]);
+                    }
+                }
+
+                targets.AddRange(firstSelection);
+
+                while (secondSelection.Count < targetOptions.SecondOptionTargets &&
+                       targetOptions.SecondOption.Count > 0)
+                {
+                    sb.AppendLine($"<@{myTurn.User}> please select an enemy to attack");
+
+                    for (var i = 0; i < targetOptions.SecondOption.Count; i++)
+                    {
+                        sb.AppendLine($"{i + 1}: {targetOptions.SecondOption[i].Name}");
+                    }
+
+                    playerResponse.Message = sb.ToString();
+
+                    var chosenTargets = await _chatService.GetPlayerResponse(playerResponse);
+
+                    sb.Clear();
+
+                    if (chosenTargets == null)
+                    {
+                        throw new Exception($"<@{myTurn.User}> has left the battle");
+                    }
+                    else if (!int.TryParse(chosenTargets, out int intResponse) ||
+                             intResponse > targetOptions.SecondOption.Count ||
+                             intResponse < 1)
+                    {
+                        sb.AppendLine($"<@{myTurn.User}> please enter a valid selection");
+                    }
+                    else
+                    {
+                        secondSelection.Add(targetOptions.SecondOption[intResponse - 1]);
+                        targetOptions.SecondOption.Remove(targetOptions.SecondOption[intResponse - 1]);
+                    }
+                }
+
+                targets.AddRange(secondSelection);
+
+                while (thirdSelection.Count < targetOptions.ThirdOptionTargets &&
+                       targetOptions.ThirdOption.Count > 0)
+                {
+                    sb.AppendLine($"<@{myTurn.User}> please select an enemy to attack");
+
+                    for (var i = 0; i < targetOptions.ThirdOption.Count; i++)
+                    {
+                        sb.AppendLine($"{i + 1}: {targetOptions.ThirdOption[i].Name}");
+                    }
+
+                    playerResponse.Message = sb.ToString();
+
+                    var chosenTargets = await _chatService.GetPlayerResponse(playerResponse);
+
+                    sb.Clear();
+
+                    if (chosenTargets == null)
+                    {
+                        throw new Exception($"<@{myTurn.User}> has left the battle");
+                    }
+                    else if (!int.TryParse(chosenTargets, out int intResponse) ||
+                             intResponse > targetOptions.ThirdOption.Count ||
+                             intResponse < 1)
+                    {
+                        sb.AppendLine($"<@{myTurn.User}> please enter a valid selection");
+                    }
+                    else
+                    {
+                        thirdSelection.Add(targetOptions.ThirdOption[intResponse - 1]);
+                        targetOptions.ThirdOption.Remove(targetOptions.ThirdOption[intResponse - 1]);
+                    }
+                }
+
+                targets.AddRange(thirdSelection);
+
+                return targets;
+            }
+            catch (Exception cat)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// method for triggering effects
         /// </summary>
         /// <returns>list of abilities that were triggered</returns>
-        public async Task<List<Ability>> GetTriggers(CheckTriggersRequest request)
+        private async Task<List<Ability>> GetTriggers(CheckTriggersRequest request)
         {
             try
             {

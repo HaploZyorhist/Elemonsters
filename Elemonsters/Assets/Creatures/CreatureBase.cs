@@ -157,6 +157,31 @@ namespace Elemonsters.Assets.Creatures
             }
         }
 
+        /// <summary>
+        /// method for removing a status effect from a character
+        /// </summary>
+        /// <param name="effect">effect to be removed</param
+        public async Task RemoveStatusEffect(StatusEffect effect)
+        {
+            try
+            {
+                var stauses = Statuses.ToList();
+
+                var matchingStatuses = Statuses
+                    .Where(x => x.Name == effect.Name)
+                    .OrderBy(x => x.Duration)
+                    .ToList();
+
+                if (matchingStatuses.Count > 0)
+                {
+                    Statuses.Remove(matchingStatuses.FirstOrDefault());
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+        }
+
         #endregion
     }
 }
