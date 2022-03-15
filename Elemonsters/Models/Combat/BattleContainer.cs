@@ -18,10 +18,6 @@ namespace Elemonsters.Models.Combat
 
         public int Instance { get; set; } = 0;
 
-        public ICommandContext Context { get; set; } = null;
-
-        public DamageFactory DamageFactory { get; set; } = null;
-
         public StringBuilder SB { get; set; } = new StringBuilder();
     }
 }

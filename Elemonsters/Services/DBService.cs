@@ -1,13 +1,8 @@
 ﻿using Elemonsters.Services.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Elemonsters.Assets.Creatures;
 using Elemonsters.Assets.Creatures.ActiveAbilities;
 using Elemonsters.Assets.Creatures.PassiveAbilities;
-using Elemonsters.Models.Combat;
+using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Services
@@ -71,8 +66,6 @@ namespace Elemonsters.Services
                     stats.Tenacity = 10;
                     stats.Regeneration = 10;
                     stats.Speed = 10;
-                    stats.Vamp = 10;
-                    stats.Drain = 10;
                 }
                 else
                 {
@@ -92,8 +85,6 @@ namespace Elemonsters.Services
                     stats.Tenacity = 10;
                     stats.Regeneration = 10;
                     stats.Speed = 10;
-                    stats.Vamp = 10;
-                    stats.Drain = 10;
                 }
 
                 return stats;
@@ -120,7 +111,7 @@ namespace Elemonsters.Services
                 {
                     Name = "Test Passive",
                     AbilityLevel = 1,
-                    AbilityType = AbilityTypes.Passive
+                    AbilityType = AbilityTypes.Passive,
                 });
 
                 creature.Abilities.Add(new Ability
@@ -146,6 +137,7 @@ namespace Elemonsters.Services
 
                 passiveAbility.PassiveAbility = (PassiveAbility)Activator.CreateInstance(type);
                 passiveAbility.PassiveAbility.TriggerConditions = TriggerConditions.OnHit;
+                passiveAbility.PassiveAbility.AllowedActivators.Add(creature.CreatureID);
 
                 type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "GenerateShieldAbility");
 

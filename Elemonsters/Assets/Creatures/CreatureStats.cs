@@ -90,15 +90,5 @@ namespace Elemonsters.Assets.Creatures
         /// how much energy the creature gains per turn
         /// </summary>
         public int Regeneration { get; set; }
-
-        /// <summary>
-        /// how much health the creature gains when dealing physical damage
-        /// </summary>
-        public int Vamp { get; set; }
-
-        /// <summary>
-        /// how much health the creature gains when dealing elemental damage
-        /// </summary>
-        public int Drain { get; set; }
     }
 }

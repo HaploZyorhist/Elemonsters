@@ -7,88 +7,99 @@ using System.Text;
 using System.Threading.Tasks;
 using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Combat;
+using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
+    /// <summary>
+    /// Active ability for testing shields
+    /// </summary>
     public class GenerateShieldAbility : ActiveAbility
     {
-        public override async Task<ActiveResults> Activation(ActiveRequest request)
+        /// <inheritdoc />
+        public override async Task<ActiveResult> Activation(ActiveRequest request)
         {
-            var effects = new List<StatusEffect>();
-
-            var sb = new StringBuilder();
-
-            var effect1 = new StatusEffect
+            try
             {
-                Name = "Test Shield",
-                Type = EffectTypes.GeneralShield,
-                Value = 1000,
-                Duration = 3
-            };
+                // create return object
+                var result = new ActiveResult();
 
-            sb.AppendLine(
-                $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect1.Value} {effect1.Type}");
+                // create list of statuses to be returned
+                var newStatus = new StatusRequest
+                {
+                    Target = request.MyTurn,
+                };
 
-            effects.Add(effect1);
+                // first status to be added to creature
+                var effect1 = new StatusEffect
+                {
+                    Name = "Test Shield",
+                    Type = EffectTypes.GeneralShield,
+                    Value = 1000,
+                    Duration = 3
+                };
 
-            var effect2 = new StatusEffect
+                newStatus.SB.AppendLine(
+                    $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect1.Value} {effect1.Type} for {effect1.Duration} turns");
+
+                newStatus.Statuses.Add(effect1);
+
+                // second effect to be added to creature
+                var effect2 = new StatusEffect
+                {
+                    Name = "Test Physical Shield",
+                    Type = EffectTypes.PhysicalShield,
+                    Value = 500,
+                    Duration = 2
+                };
+
+                newStatus.SB.AppendLine(
+                    $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect2.Value} {effect2.Type} for {effect2.Duration} turns");
+
+                newStatus.Statuses.Add(effect2);
+
+                // third effect to be added to creature
+                var effect3 = new StatusEffect
+                {
+                    Name = "Test Elemental Shield",
+                    Type = EffectTypes.ElementalShield,
+                    Value = 250,
+                    Duration = 1
+                };
+
+                newStatus.SB.AppendLine(
+                    $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect3.Value} {effect3.Type} for {effect3.Duration} turns");
+
+                // add effects to list
+                newStatus.Statuses.Add(effect3);
+
+                // add status request to return object
+                result.StatusRequests.Add(newStatus);
+
+                return result;
+            }
+            catch (Exception ex)
             {
-                Name = "Test Physical Shield",
-                Type = EffectTypes.PhysicalShield,
-                Value = 500,
-                Duration = 2
-            };
+                return null;
+            }
+        }
 
-            sb.AppendLine(
-                $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect2.Value} {effect2.Type}");
-
-            effects.Add(effect2);
-
-            var effect3 = new StatusEffect
+        /// <inheritdoc />
+        public override async Task<GetTargetsResult> GetTargetOptions(GetTargetsRequest request)
+        {
+            try
             {
-                Name = "Test Elemental Shield",
-                Type = EffectTypes.ElementalShield,
-                Value = 250,
-                Duration = 1
-            };
+                var result = new GetTargetsResult();
+                result.TotalTargets = 0;
 
-            sb.AppendLine(
-                $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect3.Value} {effect3.Type}");
-
-            effects.Add(effect3);
-
-            request.MyTurn.Statuses.AddRange(effects);
-
-            var container = request.Container;
-
-            var creature = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn.CreatureID)
-                .FirstOrDefault();
-
-            container.Creatures.Remove(creature);
-
-            container.Creatures.Add(request.MyTurn);
-
-            var damageResults = new List<DamageResults>();
-
-            var damageResult = new DamageResults
+                return result;
+            }
+            catch (Exception ex)
             {
-                AttackType = AttackTypeEnum.None,
-                Damage = 0,
-                Target = request.MyTurn,
-                SB = sb,
-                Trigger = TriggerConditions.None
-            };
-
-            damageResults.Add(damageResult);
-
-            var result = new ActiveResults
-            {
-                Container = container,
-                DamageResults = damageResults,
-            };
-
-            return result;
+                return null;
+            }
         }
     }
 }

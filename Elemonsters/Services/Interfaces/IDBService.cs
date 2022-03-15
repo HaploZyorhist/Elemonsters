@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Combat;
+using Elemonsters.Models.Combat.Requests;
 
 namespace Elemonsters.Services.Interfaces
 {

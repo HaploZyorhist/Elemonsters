@@ -4,53 +4,64 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Elemonsters.Models.Combat;
+using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures.PassiveAbilities
 {
+    /// <summary>
+    /// this is a test passive for adding magic damage to an attack
+    /// </summary>
     public class TestPassive : PassiveAbility
     {
-        public override async Task<PassiveResults> Passive(PassiveRequest request)
+        /// <inheritdoc />
+        public override async Task<PassiveResult> Passive(PassiveRequest request)
         {
-            var targets = request.Targets;
-
-            var result = new PassiveResults();
-
-            foreach (var target in targets)
+            try
             {
-                var damageRequest = new DamageRequest();
+                // get targets out of request
+                var targets = request.Targets;
 
-                var elementalBonus = new ElementalRequest
+                // create new result object
+                var result = new PassiveResult();
+
+                // iterate through the different targets
+                foreach (var target in targets)
                 {
-                    AttackerElements = request.MyTurn.Elements,
-                    DefenderElements = target.Elements
-                };
+                    // start new damage request to pass out to result
+                    var damageRequest = new DamageRequest
+                    {
+                        ActiveCreature = request.MyTurn,
+                        Target = target
+                    };
 
-                elementalBonus.AttackType = AttackTypeEnum.Magic;
-                damageRequest.AttackType = AttackTypeEnum.Magic;
-                damageRequest.Damage = request.MyTurn.Stats.Spirit;
-                damageRequest.Defense = target.Stats.Aura;
-                damageRequest.Penetration = target.Stats.Sorcery;
-                damageRequest.DamageModifier = .35;
-                damageRequest.ElementalRequest = elementalBonus;
+                    // what kind of attack is being given
+                    damageRequest.AttackType = AttackTypeEnum.Magic;
 
-                var damageDelt = await request.Container.DamageFactory.CalculateDamage(damageRequest) *
-                                 await request.Container.DamageFactory.CheckElementalBonus(damageRequest.ElementalRequest);
+                    // how much penetration is in the attack
+                    damageRequest.Penetration = target.Stats.Sorcery;
 
-                var roundedDamage = (int) damageDelt;
+                    // how much the damage stat is modified by
+                    double damageModifier = .35 + (request.AbilityLevel * .05);
 
-                var damageResult = new DamageResults
-                {
-                    AttackType = damageRequest.AttackType,
-                    Damage = roundedDamage,
-                    Target = target,
-                    SB= damageRequest.SB
-                };
+                    // calculate damage delt
+                    var damageDealt = request.MyTurn.Stats.Aura * damageModifier;
 
-                result.DamageResults.Add(damageResult);
+                    // pass it to damage request
+                    damageRequest.Damage = (int)damageDealt;
+
+                    // add the damage request to the return object
+                    result.DamageRequests.Add(damageRequest);
+                }
+
+                return result;
             }
 
-            return result;
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }

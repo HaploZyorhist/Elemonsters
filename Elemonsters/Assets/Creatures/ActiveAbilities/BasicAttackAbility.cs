@@ -5,64 +5,102 @@ using System.Text;
 using System.Threading.Tasks;
 using Elemonsters.Factories;
 using Elemonsters.Models.Combat;
+using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
+    /// <summary>
+    /// Ability for performing basic physical attacks
+    /// </summary>
     public class BasicAttackAbility : ActiveAbility
     {
-        public override async Task<ActiveResults> Activation(ActiveRequest request)
+        /// <inheritdoc />
+        public override async Task<ActiveResult> Activation(ActiveRequest request)
         {
             try
             {
-                var results = new ActiveResults();
+                // only hits the selected target
+                var target = request.Targets.First();
 
-                // do targeting
-                var target = request.Container.Creatures.Where(x => x.User != request.MyTurn.User).FirstOrDefault();
+                // create result object
+                var results = new ActiveResult();
 
-                var damageRequest = new DamageRequest();
-
-                var elementalBonus = new ElementalRequest
+                // create object containing data on damage to be dealt
+                var damageRequest = new DamageRequest
                 {
-                    AttackerElements = request.MyTurn.Elements,
-                    DefenderElements = target.Elements
+                    ActiveCreature = request.MyTurn,
+                    Target = target
                 };
 
-                elementalBonus.AttackType = AttackTypeEnum.Physical;
+                // physical attack, uses physical attack stats
                 damageRequest.AttackType = AttackTypeEnum.Physical;
-                damageRequest.Damage = request.MyTurn.Stats.Strength;
-                damageRequest.Defense = target.Stats.Defense;
+
+                // how much defense is being penetrated
                 damageRequest.Penetration = target.Stats.Lethality;
 
-                damageRequest.DamageModifier = 1;
-                damageRequest.ElementalRequest = elementalBonus;
+                // damage isn't modified
+                double damageModifier = 1;
 
+                // basic attacks can crit
                 var rand = new Random();
                 var r = rand.Next(0, 100);
 
                 if (r < request.MyTurn.Stats.CritChance)
                 {
-                    damageRequest.DamageModifier *= 1.5;
+                    damageModifier = 1.5;
                     damageRequest.SB.AppendLine($"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has landed a critical hit");
                 }
 
-                var damageDelt = await request.Container.DamageFactory.CalculateDamage(damageRequest) * await request.Container.DamageFactory.CheckElementalBonus(damageRequest.ElementalRequest);
+                // calculates damage after crit
+                var damageDouble = request.MyTurn.Stats.Strength * damageModifier;
 
-                var roundedDamage = (int)damageDelt;
+                damageRequest.Damage = (int)damageDouble;
 
-                var result = new DamageResults
-                {
-                    AttackType = damageRequest.AttackType,
-                    Damage = roundedDamage,
-                    Target = target,
-                    SB = damageRequest.SB,
-                    Trigger = TriggerConditions.OnHit
-                };
-
-                results.Container = request.Container;
-                results.DamageResults.Add(result);
+                // adds damage request to result object
+                results.DamageRequests.Add(damageRequest);
 
                 return results;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <inheritdoc />
+        public override async Task<GetTargetsResult> GetTargetOptions(GetTargetsRequest request)
+        {
+            try
+            {
+                // create result object
+                var result = new GetTargetsResult
+                {
+                    TotalTargets = 1,
+                    FirstOptionTargets = 1
+                };
+
+                // create list of available targets
+                List<CreatureBase> selectedTargets = new List<CreatureBase>();
+
+                // can only select from the most front line targets
+                var targets = request.Targets.Where(x => x.Position == PositionEnum.Melee).ToList();
+
+                if (targets.Count == 0)
+                {
+                    targets = request.Targets.Where(x => x.Position == PositionEnum.Ranged).ToList();
+                }
+
+                if (targets.Count == 0)
+                {
+                    targets = request.Targets.Where(x => x.Position == PositionEnum.Auxillary).ToList();
+                }
+
+                // add targets to result object
+                result.FirstOption.AddRange(targets);
+
+                return result;
             }
             catch (Exception ex)
             {

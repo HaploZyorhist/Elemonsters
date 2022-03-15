@@ -5,9 +5,12 @@ using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System.Text;
+using Discord.Commands;
 using Interactivity;
 using Microsoft.VisualBasic;
 using Elemonsters.Models.Chat;
+using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.Combat.Results;
 
 namespace Elemonsters.Services
 {
@@ -21,6 +24,9 @@ namespace Elemonsters.Services
         private readonly InteractivityService _interact;
         private readonly IChatService _chatService;
 
+        public ICommandContext Context;
+        public BattleContainer Container;
+
         public BattleService(IPartyService partyService,
                              DamageFactory damageFactory,
                              InteractivityService interact,
@@ -33,13 +39,16 @@ namespace Elemonsters.Services
         }
 
         /// <inheritdoc />
-        public async Task BeginBattle(BattleContainer battleContainer)
+        public async Task BeginBattle(ICommandContext context, BattleContainer battleContainer)
         {
+            Context = context;
+            Container = battleContainer;
+
             try
             {
                 if (battleContainer.Players.Count == 1)
                 {
-                    var bot = await battleContainer.Context.Client.GetUserAsync(Environment.GetEnvironmentVariable("BotName"), Environment.GetEnvironmentVariable("BotDiscriminator"));
+                    var bot = await Context.Client.GetUserAsync(Environment.GetEnvironmentVariable("BotName"), Environment.GetEnvironmentVariable("BotDiscriminator"));
                     battleContainer.Players.Add(bot);
                 }
 
@@ -54,61 +63,11 @@ namespace Elemonsters.Services
 
                 battleContainer.Creatures.AddRange(creatures);
 
-                await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+                await Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
                 battleContainer.SB.Clear();
 
-                // loop while a player's team has 1 member alive
-                var aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
-                var teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
-                var teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
-
-                while (teamAAliveMembers.Count > 0 && teamBAliveMembers.Count > 0)
-                {
-
-                    var creaturesToTurn = aliveCreatures.Where(x => x.ActionPoints >= 100)
-                        .OrderBy(x => x.ActionPoints)
-                        .ThenBy(x => x.Stats.Speed)
-                        .ThenByDescending(x => x.Level)
-                        .ThenBy(x => x.CreatureID)
-                        .ToList();
-
-                    foreach (var myTurn in creaturesToTurn)
-                    {
-                        battleContainer = await PerformTurn(battleContainer, myTurn);
-
-                        if (battleContainer == null)
-                        {
-                            throw new Exception("PerformTurn has returned null");
-                        }
-
-                        myTurn.ActionPoints -= 100;
-                        battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has taken a turn and reduced their action points by 100");
-
-                        aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
-                        teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
-                        teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
-
-                        if (teamAAliveMembers.Count == 0 || teamBAliveMembers.Count == 0)
-                        {
-                            var sb = teamAAliveMembers.Count > 0
-                                ? $"<@{teamAAliveMembers[0].User}> has won the battle"
-                                : $"<@{teamBAliveMembers[0].User}> has won the battle";
-                            battleContainer.SB.AppendLine(sb);
-                            break;
-                        }
-
-                        if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
-                        {
-                            await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
-                            battleContainer.SB.Clear();
-                        }
-                    }
-
-                    foreach (var alive in aliveCreatures)
-                    {
-                        await alive.Tick();
-                    }
-                }
+                // loop while both players have at least 1 alive team member
+                var winner = await StartBattleLoop(battleContainer);
 
                 return;
             }
@@ -117,6 +76,88 @@ namespace Elemonsters.Services
                 // await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
 
                 return;
+            }
+        }
+
+        /// <summary>
+        /// loops until someone has won the battle
+        /// </summary>
+        /// <param name="battleContainer">object that contains the battle information</param>
+        /// <returns>string of the winner</returns>
+        private async Task<string> StartBattleLoop(BattleContainer battleContainer)
+        {
+            try
+            {
+                // who the winner is
+                string winner = "";
+
+                // creatures that are not dead at the moment
+                var aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
+                var teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
+                var teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
+
+                // the loop that will continue until 1 player has no alive members
+                while (teamAAliveMembers.Count > 0 && teamBAliveMembers.Count > 0)
+                {
+                    // gets creatures who need to take a turn
+                    var creaturesToTurn = aliveCreatures.Where(x => x.ActionPoints >= 100)
+                        .OrderBy(x => x.ActionPoints)
+                        .ThenBy(x => x.Stats.Speed)
+                        .ThenByDescending(x => x.Level)
+                        .ThenBy(x => x.CreatureID)
+                        .ToList();
+
+                    // go through each creature who needs to take a turn
+                    foreach (var myTurn in creaturesToTurn)
+                    {
+                        // perform that creatures turn
+                        battleContainer = await PerformTurn(battleContainer, myTurn);
+
+                        if (battleContainer == null)
+                        {
+                            throw new Exception("PerformTurn has returned null");
+                        }
+
+                        // reduce their turn points by 100 for taking a turn
+                        myTurn.ActionPoints -= 100;
+                        battleContainer.SB.AppendLine($"<@{myTurn.User}>'s {myTurn.Name} has taken a turn and reduced their action points by 100");
+
+                        // recheck alive creatures
+                        aliveCreatures = battleContainer.Creatures.Where(x => x.Stats.Health > 0).ToList();
+                        teamAAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[0].Id).ToList();
+                        teamBAliveMembers = aliveCreatures.Where(x => x.User == battleContainer.Players[1].Id).ToList();
+
+                        // check win condition
+                        if (teamAAliveMembers.Count == 0 || teamBAliveMembers.Count == 0)
+                        {
+                            var sb = teamAAliveMembers.Count > 0
+                                ? $"<@{teamAAliveMembers[0].User}> has won the battle"
+                                : $"<@{teamBAliveMembers[0].User}> has won the battle";
+                            battleContainer.SB.AppendLine(sb);
+                            winner = $"<@{teamAAliveMembers[0].User}>";
+                            break;
+                        }
+
+                        // pass messages out
+                        if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
+                        {
+                            await Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+                            battleContainer.SB.Clear();
+                        }
+                    }
+
+                    // tick up the turn counter for all creatures
+                    foreach (var alive in aliveCreatures)
+                    {
+                        await alive.Tick();
+                    }
+                }
+
+                return winner;
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 
@@ -148,41 +189,52 @@ namespace Elemonsters.Services
                     throw new Exception($"<@{myTurn.User}> failed to select an ability properly");
                 }
 
+                // step 4 get target options
+                var targetsRequest = new GetTargetsRequest
+                {
+                    MyTurn = myTurn,
+                    Targets = battleContainer.Creatures
+                };
+                var targetOptions = await selectedAbility.ActiveAbility.GetTargetOptions(targetsRequest);
+
+                // TODO Get player response for target selection
+                var targets = targetOptions.FirstOption;
+
+                // step 5 get results of the activated ability
                 var activeRequest = new ActiveRequest
                 {
-                    Container = battleContainer,
                     MyTurn = myTurn,
                     AbilityName = selectedAbility.Name,
-                    AbilityLevel = selectedAbility.AbilityLevel
+                    AbilityLevel = selectedAbility.AbilityLevel,
+                    Targets = targets
                 };
 
                 var activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
 
-                battleContainer = activeResults.Container;
-
-                foreach (var result in activeResults.DamageResults)
+                // step 6 do things from the abilities
+                foreach (var result in activeResults.DamageRequests)
                 {
                     battleContainer.SB.Append(result.SB.ToString());
                 }
 
+                //TODO is this the best place for passive activations?
                 var passiveActivations = new List<Ability>();
 
-                foreach (var trigger in activeResults.DamageResults)
+                foreach (var trigger in activeResults.DamageRequests)
                 {
                     passiveActivations = myTurn.Abilities
-                        .Where(x => x.PassiveAbility?.TriggerConditions == trigger.Trigger)
+                        .Where(x => x.PassiveAbility?.TriggerConditions == trigger.TriggerCondition)
                         .ToList();
                 }
 
-                var passivesKicked = new List<PassiveResults>();
+                var passivesKicked = new List<PassiveResult>();
 
                 foreach (var passive in passiveActivations)
                 {
                     var passiveRequest = new PassiveRequest
                     {
-                        Container = battleContainer,
                         MyTurn = myTurn,
-                        Targets = activeResults.DamageResults.Select(x => x.Target).ToList(),
+                        Targets = activeResults.DamageRequests.Select(x => x.Target).ToList(),
                         AbilityName = passive.Name,
                         AbilityLevel = passive.AbilityLevel
                     };
@@ -192,34 +244,34 @@ namespace Elemonsters.Services
                     passivesKicked.Add(passiveKick);
                 }
 
-                var targetList = activeResults.DamageResults.Select(x => x.Target).Distinct();
+                var targetList = activeResults.DamageRequests.Select(x => x.Target).Distinct();
 
                 foreach (var target in targetList)
                 {
                     int totalDamage = 0;
 
-                    var physicalDamage = activeResults.DamageResults
+                    var physicalDamage = activeResults.DamageRequests
                         .Where(x => x.Target == target &&
                                     x.AttackType == AttackTypeEnum.Physical)
                         .Select(x => x.Damage)
                         .Sum();
 
                     physicalDamage += passivesKicked
-                        .Select(x => x.DamageResults
+                        .Select(x => x.DamageRequests
                             .Where(x => x.Target == target &&
                                         x.AttackType == AttackTypeEnum.Physical)
                             .Select(x => x.Damage)
                             .Sum())
                         .Sum();
 
-                    var magicDamage = activeResults.DamageResults
+                    var magicDamage = activeResults.DamageRequests
                         .Where(x => x.Target == target &&
                                     x.AttackType == AttackTypeEnum.Magic)
                         .Select(x => x.Damage)
                         .Sum();
 
                     magicDamage += passivesKicked
-                        .Select(x => x.DamageResults
+                        .Select(x => x.DamageRequests
                             .Where(x => x.Target == target &&
                                         x.AttackType == AttackTypeEnum.Magic)
                             .Select(x => x.Damage)
@@ -337,8 +389,6 @@ namespace Elemonsters.Services
             }
             catch (Exception ex)
             {
-                await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
-
                 return null;
             }
         }
@@ -416,7 +466,6 @@ namespace Elemonsters.Services
 
                         var playerResponseRequest = new PlayerResponseRequest
                         {
-                            Context = battleContainer.Context,
                             User = myTurn.User,
                             Message = battleContainer.SB.ToString(),
                         };
@@ -444,7 +493,7 @@ namespace Elemonsters.Services
 
                 if (!string.IsNullOrEmpty(battleContainer.SB.ToString()))
                 {
-                    await battleContainer.Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
+                    await Context.Channel.SendMessageAsync(battleContainer.SB.ToString());
                     battleContainer.SB.Clear();
                 }
 
@@ -452,7 +501,7 @@ namespace Elemonsters.Services
             }
             catch (Exception ex)
             {
-                await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
+                await Context.Channel.SendMessageAsync(ex.Message);
 
                 return null;
             }
@@ -461,10 +510,24 @@ namespace Elemonsters.Services
         /// <summary>
         /// method for triggering effects
         /// </summary>
-        /// <returns></returns>
-        public async Task TriggerPassives()
+        /// <returns>list of abilities that were triggered</returns>
+        public async Task<List<Ability>> GetTriggers(CheckTriggersRequest request)
         {
+            try
+            {
+                List<Ability> triggeredAbilities = new List<Ability>();
 
+                if (request.TriggerCondition != null)
+                {
+
+                }
+
+                return triggeredAbilities;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }

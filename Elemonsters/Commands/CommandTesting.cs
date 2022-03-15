@@ -164,13 +164,11 @@ namespace Elemonsters.Commands
                 var battleContainer = new BattleContainer
                 {
                     Players = players,
-                    Context = context,
                     Instance = await _instance.GetInstance(),
                     Creatures = new List<CreatureBase>(),
-                    DamageFactory = _damageFactory
                 };
 
-                await _battleService.BeginBattle(battleContainer);
+                await _battleService.BeginBattle(context, battleContainer);
             }
             catch (Exception ex)
             {

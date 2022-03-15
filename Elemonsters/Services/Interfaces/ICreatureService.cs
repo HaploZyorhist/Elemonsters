@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Elemonsters.Models.Combat;
+using Elemonsters.Models.Combat.Requests;
 
 namespace Elemonsters.Services.Interfaces
 {

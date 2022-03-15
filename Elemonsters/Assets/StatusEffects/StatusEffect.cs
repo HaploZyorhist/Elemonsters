@@ -13,5 +13,6 @@ namespace Elemonsters.Assets.StatusEffects
         public EffectTypes Type { get; set; }
         public int Duration { get; set; }
         public int Value { get; set; }
+        public bool ToDisplay { get; set; } = true;
     }
 }

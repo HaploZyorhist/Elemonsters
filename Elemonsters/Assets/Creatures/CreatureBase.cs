@@ -1,11 +1,5 @@
 ﻿using Elemonsters.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Elemonsters.Assets.StatusEffects;
-using Elemonsters.Factories;
 
 namespace Elemonsters.Assets.Creatures
 {
@@ -41,6 +35,11 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public int ActionPoints { get; set; }
 
+        /// <summary>
+        /// The position the creature is currently occupying
+        /// </summary>
+        public PositionEnum Position { get; set; }
+
         //TODO This needs to be an enum
         /// <summary>
         /// the current upgrade of the creature
@@ -68,6 +67,9 @@ namespace Elemonsters.Assets.Creatures
 
         #region CTOR
 
+        /// <summary>
+        /// base constructor for the creature object
+        /// </summary>
         public CreatureBase()
         {
             Name = "Testy";
@@ -76,6 +78,7 @@ namespace Elemonsters.Assets.Creatures
             Level = 1;
             Rank = 1;
             ActionPoints = 0;
+            Position = PositionEnum.Melee;
             Stats = new CreatureStats
             {
                 Strength = 100,
@@ -88,8 +91,6 @@ namespace Elemonsters.Assets.Creatures
                 CritModifier = 150,
                 Dodge = 100,
                 Tenacity = 100,
-                Drain = 100,
-                Vamp = 100,
                 MaxHealth = 1000,
                 Health = 1000,
                 MaxEnergy = 100,
