@@ -1,12 +1,5 @@
 ﻿using Discord;
-using Discord.Commands;
 using Elemonsters.Assets.Creatures;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Factories;
 
 namespace Elemonsters.Models.Combat
 {

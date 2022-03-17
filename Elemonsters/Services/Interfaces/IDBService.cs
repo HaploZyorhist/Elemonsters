@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Creatures;
-using Elemonsters.Models.Combat;
+﻿using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Combat.Requests;
 
 namespace Elemonsters.Services.Interfaces

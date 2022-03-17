@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Elemonsters.Models.Combat.Requests
+﻿namespace Elemonsters.Models.Combat.Requests
 {
     /// <summary>
     /// object for applying a status effect to a creature

@@ -23,5 +23,10 @@ namespace Elemonsters.Models.Combat.Results
         /// list of status requests coming from an active ability
         /// </summary>
         public List<StatusRequest> StatusRequests { get; set; } = new List<StatusRequest>();
+
+        /// <summary>
+        /// string builder containing information from the activation off the ability
+        /// </summary>
+        public StringBuilder SB { get; set; } = new StringBuilder();
     }
 }

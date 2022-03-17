@@ -1,12 +1,5 @@
-﻿using Elemonsters.Models.Combat;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Creatures.ActiveAbilities;
+﻿using Elemonsters.Assets.Creatures.ActiveAbilities;
 using Elemonsters.Assets.Creatures.PassiveAbilities;
-using Elemonsters.Factories;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures
@@ -21,12 +14,24 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public string Name { get; set; } = "";
 
+        /// <summary>
+        /// the ability level
+        /// </summary>
         public int AbilityLevel { get; set; } = 0;
 
+        /// <summary>
+        /// what type the ability is of
+        /// </summary>
         public AbilityTypes AbilityType { get; set; }
 
+        /// <summary>
+        /// the creature's passive ability
+        /// </summary>
         public PassiveAbility PassiveAbility { get; set; }
 
+        /// <summary>
+        /// the creature's active ability
+        /// </summary>
         public ActiveAbility ActiveAbility { get; set; }
     }
 }

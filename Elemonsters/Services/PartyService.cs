@@ -1,5 +1,4 @@
 ﻿using Elemonsters.Assets.Creatures;
-using Elemonsters.Factories;
 using Elemonsters.Services.Interfaces;
 
 namespace Elemonsters.Services

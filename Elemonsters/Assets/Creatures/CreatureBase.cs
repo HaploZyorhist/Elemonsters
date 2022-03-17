@@ -102,8 +102,8 @@ namespace Elemonsters.Assets.Creatures
             {
                 PhysicalElement = PhysicalElement.Fire,
                 PhysicalValue = 100,
-                MagicElement = MagicElement.Wind,
-                MagicValue = 100,
+                RangedElement = MagicElement.Wind,
+                RangedValue = 100,
             };
             
         }

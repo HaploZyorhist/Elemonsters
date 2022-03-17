@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.StatusEffects;
-using Elemonsters.Models.Combat;
+﻿using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
@@ -29,7 +21,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                 // create list of statuses to be returned
                 var newStatus = new StatusRequest
                 {
-                    Target = request.MyTurn,
+                    Target = request.MyTurn.CreatureID,
                 };
 
                 // first status to be added to creature
@@ -43,7 +35,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     Remove = RemoveStatusEnum.All,
                 };
 
-                newStatus.SB.AppendLine(
+                result.SB.AppendLine(
                     $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect1.Value} {effect1.Type} for {effect1.Duration} turns");
 
                 newStatus.Statuses.Add(effect1);
@@ -59,7 +51,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     Remove = RemoveStatusEnum.All,
                 };
 
-                newStatus.SB.AppendLine(
+                result.SB.AppendLine(
                     $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect2.Value} {effect2.Type} for {effect2.Duration} turns");
 
                 newStatus.Statuses.Add(effect2);
@@ -75,7 +67,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     Remove = RemoveStatusEnum.All,
                 };
 
-                newStatus.SB.AppendLine(
+                result.SB.AppendLine(
                     $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect3.Value} {effect3.Type} for {effect3.Duration} turns");
 
                 // add effects to list

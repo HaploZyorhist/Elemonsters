@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Creatures;
-using Elemonsters.Models.Combat.Results;
+﻿using Elemonsters.Assets.Creatures;
 
 namespace Elemonsters.Models.Combat.Requests
 {
@@ -21,7 +15,7 @@ namespace Elemonsters.Models.Combat.Requests
         /// <summary>
         /// id of creature who is actively taking turn
         /// </summary>
-        public ulong MyTurn { get; set; }
+        public CreatureBase MyTurn { get; set; }
 
         /// <summary>
         /// name of the ability being activated

@@ -1,7 +1,5 @@
 ﻿using Elemonsters.Assets.Creatures;
-using Elemonsters.Assets.Creatures.ActiveAbilities;
 using Elemonsters.Factories;
-using Elemonsters.Models.Combat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Services.Interfaces;
 

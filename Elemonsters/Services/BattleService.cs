@@ -9,6 +9,7 @@ using Discord.Commands;
 using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
+using Elemonsters.Models.Factory.Requests;
 using Microsoft.EntityFrameworkCore.Query;
 
 namespace Elemonsters.Services
@@ -24,7 +25,7 @@ namespace Elemonsters.Services
 
         public ICommandContext _context;
         public BattleContainer _container;
-        public StringBuilder _messages;
+        public StringBuilder _messages = new StringBuilder();
 
         public BattleService(IPartyService partyService,
                              DamageFactory damageFactory,
@@ -79,7 +80,6 @@ namespace Elemonsters.Services
         /// <summary>
         /// loops until someone has won the battle
         /// </summary>
-        /// <param name="battleContainer">object that contains the battle information</param>
         /// <returns>string of the winner</returns>
         private async Task<string> StartBattleLoop()
         {
@@ -156,9 +156,7 @@ namespace Elemonsters.Services
         /// <summary>
         /// method for giving a creature their turn
         /// </summary>
-        /// <param name="battleContainer">the state of the battle</param>
         /// <param name="myTurn">the creature who is taking their turn</param>
-        /// <returns>updated map state</returns>
         private async Task PerformTurn(ulong myTurn)
         {
             try
@@ -203,7 +201,7 @@ namespace Elemonsters.Services
                     // step 6 get results of the activated ability
                     var activeRequest = new ActiveRequest
                     {
-                        MyTurn = myTurn,
+                        MyTurn = me,
                         AbilityName = selectedAbility.Name,
                         AbilityLevel = selectedAbility.AbilityLevel,
                         Targets = targets
@@ -547,34 +545,85 @@ namespace Elemonsters.Services
             {
                 // TODO get defense values
 
-                var targetList = damageRequests.Select(x => x.Target).Distinct().ToList();
+                var targetList = damageRequests
+                    .Select(x => x.Target)
+                    .Distinct()
+                    .ToList();
+
                 foreach (var target in targetList)
                 {
-                    var me = _container.Creatures.Where(x => x.CreatureID == target).FirstOrDefault();
+                    var me = _container.Creatures
+                        .Where(x => x.CreatureID == target)
+                        .FirstOrDefault();
 
-                    var requests = damageRequests.Where(x => x.Target == target).ToList();
+                    var requests = damageRequests
+                        .Where(x => x.Target == target)
+                        .ToList();
                     int totalDamage = 0;
 
-                    var physicalDamage = requests
+                    var physicalReqeusts = requests
                         .Where(x => x.Target == target &&
                                     x.AttackType == AttackTypeEnum.Physical)
-                        .Select(x => x.Damage)
-                        .Sum();
+                        .ToList();
 
-                    var elementalDamage = requests
+                    var physicalDamageRequests = physicalReqeusts
+                        .Select(x => new DamageFactoryRequest()
+                        {
+                            Target = me,
+                            AttackType = AttackTypeEnum.Physical,
+                            Damage = x.Damage,
+                            Penetration = x.Penetration
+                        })
+                        .ToList();
+
+                    int physicalDamage = physicalDamageRequests
+                        .Sum(x => _damageFactory
+                            .CalculateDamage(x)
+                            .GetAwaiter()
+                            .GetResult());
+
+                    var elementalRequests = requests
                         .Where(x => x.Target == target &&
                                     x.AttackType == AttackTypeEnum.Magic)
-                        .Select(x => x.Damage)
-                        .Sum();
+                        .ToList();
 
-                    var trueDamage = requests
+                    var elementalDamageRequests = elementalRequests
+                        .Select(x => new DamageFactoryRequest()
+                        {
+                            Target = me,
+                            AttackType = AttackTypeEnum.Magic,
+                            Damage = x.Damage,
+                            Penetration = x.Penetration
+                        })
+                        .ToList();
+
+                    int elementalDamage = elementalDamageRequests
+                        .Sum(x => _damageFactory
+                            .CalculateDamage(x)
+                            .GetAwaiter()
+                            .GetResult());
+
+                    var trueRequests = requests
                         .Where(x => x.Target == target &&
                                     x.AttackType == AttackTypeEnum.True)
-                        .Select(x => x.Damage)
-                        .Sum();
+                        .ToList();
+
+                    var trueDamageRequests = trueRequests
+                        .Select(x => new DamageFactoryRequest
+                        {
+                            Target = me,
+                            AttackType = AttackTypeEnum.True,
+                            Damage = x.Damage,
+                            Penetration = x.Penetration
+                        });
+
+                    var trueDamage = trueDamageRequests
+                        .Sum(x => _damageFactory
+                            .CalculateDamage(x)
+                            .GetAwaiter()
+                            .GetResult());
 
                     totalDamage = physicalDamage + elementalDamage + trueDamage;
-                    var currentHealth = me.Stats.Health;
 
                     var elementalShields = me.Statuses
                         .Where(x =>

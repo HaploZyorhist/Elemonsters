@@ -20,40 +20,33 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
         {
             try
             {
-                // get targets out of request
-                var targets = request.Targets;
-
                 // create new result object
                 var result = new PassiveResult();
 
-                // iterate through the different targets
-                foreach (var target in targets)
+                // start new damage request to pass out to result
+                var damageRequest = new DamageRequest
                 {
-                    // start new damage request to pass out to result
-                    var damageRequest = new DamageRequest
-                    {
-                        ActiveCreature = request.MyTurn,
-                        Target = target
-                    };
+                    ActiveCreature = request.MyTurn.CreatureID,
+                    Target = request.Target.CreatureID
+                };
 
-                    // what kind of attack is being given
-                    damageRequest.AttackType = AttackTypeEnum.Magic;
+                // what kind of attack is being given
+                damageRequest.AttackType = AttackTypeEnum.Magic;
 
-                    // how much penetration is in the attack
-                    damageRequest.Penetration = target.Stats.Sorcery;
+                // how much penetration is in the attack
+                damageRequest.Penetration = request.MyTurn.Stats.Sorcery;
 
-                    // how much the damage stat is modified by
-                    double damageModifier = .35 + (request.AbilityLevel * .05);
+                // how much the damage stat is modified by
+                double damageModifier = .35 + (request.AbilityLevel * .05);
 
-                    // calculate damage delt
-                    var damageDealt = request.MyTurn.Stats.Aura * damageModifier;
+                // calculate damage delt
+                var damageDealt = request.MyTurn.Stats.Aura * damageModifier;
 
-                    // pass it to damage request
-                    damageRequest.Damage = (int)damageDealt;
+                // pass it to damage request
+                damageRequest.Damage = (int)damageDealt;
 
-                    // add the damage request to the return object
-                    result.DamageRequests.Add(damageRequest);
-                }
+                // add the damage request to the return object
+                result.DamageRequests.Add(damageRequest);
 
                 return result;
             }

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Creatures;
-using Elemonsters.Assets.StatusEffects;
+﻿using Elemonsters.Assets.StatusEffects;
 
 namespace Elemonsters.Models.Combat.Requests
 {

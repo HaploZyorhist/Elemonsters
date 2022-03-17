@@ -1,14 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Factories;
-using Elemonsters.Models.Combat;
-using Elemonsters.Models.Combat.Requests;
+﻿using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Elemonsters.Assets.Creatures.ActiveAbilities
 {
@@ -37,7 +29,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                 // create object containing data on damage to be dealt
                 var damageRequest = new DamageRequest
                 {
-                    ActiveCreature = request.MyTurn,
+                    ActiveCreature = request.MyTurn.CreatureID,
                     Target = target.CreatureID
                 };
 
@@ -57,7 +49,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                 if (r < request.MyTurn.Stats.CritChance)
                 {
                     damageModifier = 1.5;
-                    damageRequest.SB.AppendLine($"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has landed a critical hit");
+                    results.SB.AppendLine($"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has landed a critical hit");
                 }
 
                 // calculates damage after crit
@@ -87,25 +79,6 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     TotalTargets = 1,
                     FirstOptionTargets = 1
                 };
-
-                // create list of available targets
-                List<CreatureBase> selectedTargets = new List<CreatureBase>();
-
-                // can only select from the most front line targets
-                var targets = request.Targets.Where(x => x.Position == PositionEnum.Melee).ToList();
-
-                if (targets.Count == 0)
-                {
-                    targets = request.Targets.Where(x => x.Position == PositionEnum.Ranged).ToList();
-                }
-
-                if (targets.Count == 0)
-                {
-                    targets = request.Targets.Where(x => x.Position == PositionEnum.Auxillary).ToList();
-                }
-
-                // add targets to result object
-                result.FirstOption.AddRange(targets);
 
                 return result;
             }

@@ -65,7 +65,7 @@ namespace Elemonsters.Services
                     stats.Dodge = 10;
                     stats.Tenacity = 10;
                     stats.Regeneration = 10;
-                    stats.Speed = 10;
+                    stats.Speed = 9;
                 }
                 else
                 {
@@ -168,15 +168,15 @@ namespace Elemonsters.Services
                 {
                     elements.PhysicalElement = PhysicalElement.Fire;
                     elements.PhysicalValue = 100;
-                    elements.MagicElement = MagicElement.Wind;
-                    elements.MagicValue = 100;
+                    elements.RangedElement = MagicElement.Wind;
+                    elements.RangedValue = 100;
                 }
                 else
                 {
                     elements.PhysicalElement = PhysicalElement.Water;
                     elements.PhysicalValue = 100;
-                    elements.MagicElement = MagicElement.Earth;
-                    elements.MagicValue = 100;
+                    elements.RangedElement = MagicElement.Earth;
+                    elements.RangedValue = 100;
                 }
 
                 return elements;

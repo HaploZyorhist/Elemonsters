@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Elemonsters.Assets.Creatures
+﻿namespace Elemonsters.Assets.Creatures
 {
     /// <summary>
     /// class containing creature stats
