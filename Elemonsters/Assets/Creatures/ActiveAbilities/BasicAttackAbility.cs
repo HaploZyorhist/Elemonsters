@@ -1,4 +1,5 @@
-﻿using Elemonsters.Models.Combat.Requests;
+﻿using System.Data;
+using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
@@ -69,15 +70,16 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
         }
 
         /// <inheritdoc />
-        public override async Task<GetTargetsResult> GetTargetOptions()
+        public override async Task<TargetRulesResult> GetTargetOptions()
         {
             try
             {
                 // create result object
-                var result = new GetTargetsResult
+                var result = new TargetRulesResult
                 {
+                    Rule = TargetingRulesEnum.Standard,
                     TotalTargets = 1,
-                    FirstOptionTargets = 1
+                    UniqueTargets = true
                 };
 
                 return result;

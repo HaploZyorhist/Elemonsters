@@ -50,6 +50,7 @@ namespace Elemonsters
                 .AddSingleton<IPartyService, PartyService>()
                 .AddSingleton<IAIService, AIService>()
                 .AddSingleton<IChatService, ChatService>()
+                .AddSingleton<ITargetingService, TargetingService>()
 
                 // factories
                 .AddSingleton<DamageFactory>()

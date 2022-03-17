@@ -85,12 +85,16 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
         }
 
         /// <inheritdoc />
-        public override async Task<GetTargetsResult> GetTargetOptions()
+        public override async Task<TargetRulesResult> GetTargetOptions()
         {
             try
             {
-                var result = new GetTargetsResult();
-                result.TotalTargets = 0;
+                var result = new TargetRulesResult
+                {
+                    Rule = TargetingRulesEnum.NoTarget,
+                    TotalTargets = 0,
+                    UniqueTargets = true,
+                };
 
                 return result;
             }
