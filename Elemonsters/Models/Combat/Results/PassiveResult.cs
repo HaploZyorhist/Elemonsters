@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Models.Combat.Requests;
+﻿using Elemonsters.Models.Combat.Requests;
 
 namespace Elemonsters.Models.Combat.Results
 {
+    /// <summary>
+    /// results for a passive activation
+    /// </summary>
     public class PassiveResult
     {
+        /// <summary>
+        /// list of damage requests coming from an active ability
+        /// </summary>
         public List<DamageRequest> DamageRequests { get; set; } = new List<DamageRequest>();
 
         /// <summary>

@@ -38,7 +38,9 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     Name = "Test Shield",
                     Type = EffectTypes.GeneralShield,
                     Value = 1000,
-                    Duration = 3
+                    Duration = 3,
+                    Add = AddStatusEnum.Individual,
+                    Remove = RemoveStatusEnum.All,
                 };
 
                 newStatus.SB.AppendLine(
@@ -52,7 +54,9 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     Name = "Test Physical Shield",
                     Type = EffectTypes.PhysicalShield,
                     Value = 500,
-                    Duration = 2
+                    Duration = 2,
+                    Add = AddStatusEnum.Individual,
+                    Remove = RemoveStatusEnum.All,
                 };
 
                 newStatus.SB.AppendLine(
@@ -66,7 +70,9 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                     Name = "Test Elemental Shield",
                     Type = EffectTypes.ElementalShield,
                     Value = 250,
-                    Duration = 1
+                    Duration = 1,
+                    Add = AddStatusEnum.Individual,
+                    Remove = RemoveStatusEnum.All,
                 };
 
                 newStatus.SB.AppendLine(
