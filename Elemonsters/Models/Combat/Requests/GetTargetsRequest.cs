@@ -14,13 +14,13 @@ namespace Elemonsters.Models.Combat.Requests
     public class GetTargetsRequest
     {
         /// <summary>
-        /// list of available targets
+        /// object containing all of the details of the battle
         /// </summary>
-        public List<CreatureBase> Targets { get; set; } = new List<CreatureBase>();
+        public BattleContainer Container { get; set; } = new BattleContainer();
         
         /// <summary>
         /// creature who is currently activating the ability
         /// </summary>
-        public CreatureBase MyTurn { get; set; }
+        public ulong MyTurn { get; set; }
     }
 }

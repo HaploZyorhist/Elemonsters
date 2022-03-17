@@ -12,9 +12,29 @@ namespace Elemonsters.Models.Combat.Requests
     /// </summary>
     public class PassiveRequest
     {
-        public CreatureBase MyTurn { get; set; } = new CreatureBase();
-        public List<CreatureBase> Targets { get; set; } = new List<CreatureBase>();
+        /// <summary>
+        /// id of creature who is actively taking turn
+        /// </summary>
+        public ulong MyTurn { get; set; }
+
+        /// <summary>
+        /// object containing all of the details of the battle
+        /// </summary>
+        public BattleContainer Container { get; set; } = new BattleContainer();
+
+        /// <summary>
+        /// targets being affected by the activation of the passive
+        /// </summary>
+        public CreatureBase Target { get; set; }
+
+        /// <summary>
+        /// name of ability being activated
+        /// </summary>
         public string AbilityName { get; set; } = "";
+
+        /// <summary>
+        /// level of ability being activated
+        /// </summary>
         public int AbilityLevel { get; set; } = 0;
     }
 }

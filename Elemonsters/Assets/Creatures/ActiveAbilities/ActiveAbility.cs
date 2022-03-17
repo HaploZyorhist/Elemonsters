@@ -29,7 +29,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
         /// </summary>
         /// <param name="request">request object with data for target selection</param>
         /// <returns>object containing options on what targets are available</returns>
-        public virtual async Task<GetTargetsResult> GetTargetOptions(GetTargetsRequest request)
+        public virtual async Task<GetTargetsResult> GetTargetOptions()
         {
             throw new NotImplementedException();
         }

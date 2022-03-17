@@ -17,7 +17,5 @@ namespace Elemonsters.Models.Combat
         public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
 
         public int Instance { get; set; } = 0;
-
-        public StringBuilder SB { get; set; } = new StringBuilder();
     }
 }

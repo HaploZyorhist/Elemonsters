@@ -38,7 +38,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                 var damageRequest = new DamageRequest
                 {
                     ActiveCreature = request.MyTurn,
-                    Target = target
+                    Target = target.CreatureID
                 };
 
                 // physical attack, uses physical attack stats
@@ -77,7 +77,7 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
         }
 
         /// <inheritdoc />
-        public override async Task<GetTargetsResult> GetTargetOptions(GetTargetsRequest request)
+        public override async Task<GetTargetsResult> GetTargetOptions()
         {
             try
             {
