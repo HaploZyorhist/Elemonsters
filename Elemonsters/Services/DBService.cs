@@ -137,7 +137,7 @@ namespace Elemonsters.Services
 
                 passiveAbility.PassiveAbility = (PassiveAbility)Activator.CreateInstance(type);
                 passiveAbility.PassiveAbility.TriggerConditions = TriggerConditions.OnHit;
-                passiveAbility.PassiveAbility.AllowedActivators.Add(creature.CreatureID);
+                passiveAbility.PassiveAbility.AllowedActivators.Add(creatureRequest.CreatureID);
 
                 type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "GenerateShieldAbility");
 

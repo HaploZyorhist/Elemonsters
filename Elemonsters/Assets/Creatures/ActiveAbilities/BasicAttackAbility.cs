@@ -31,7 +31,8 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                 var damageRequest = new DamageRequest
                 {
                     ActiveCreature = request.MyTurn.CreatureID,
-                    Target = target.CreatureID
+                    Target = target.CreatureID,
+                    TriggerCondition = TriggerConditions.OnHit
                 };
 
                 // physical attack, uses physical attack stats

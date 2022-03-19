@@ -230,7 +230,7 @@ namespace Elemonsters.Services
                 {
                     var attackerPassives = me.Abilities
                         .Where(x => x.PassiveAbility?.TriggerConditions == TriggerConditions.OnHit &&
-                                    x.PassiveAbility.AllowedActivators.Contains(me.CreatureID))
+                                    x.PassiveAbility.AllowedActivators.Contains(myTurn))
                         .ToList();
 
                     var attackPassiveActivations = attackerPassives
@@ -662,9 +662,12 @@ namespace Elemonsters.Services
                             $"<@{me.User}>'s {me.Name}'s Elemental Shield has blocked {totalDamage - remainingDamage} damage");
                     }
 
-                    _messages.AppendLine(
-                        $"<@{me.User}>'s {me.Name} took {totalDamage} total damage, {totalDamage - remainingDamage} was blocked by shields.  " +
-                        $"{remainingDamage} was dealt to their health");
+                    _messages.
+                        AppendLine($"<@{me.User}>'s {me.Name} took {totalDamage} total damage, {totalDamage - remainingDamage} was blocked by shields.  " +
+                                   $"{remainingDamage} was dealt to their health");
+
+                    _messages
+                        .AppendLine($"{remainingElementalDamage} was Elemental Damage, {remainingPhysicalDamage} was Physical Damage, {trueDamage} was True Damage");
 
                     if (me.Stats.Health == 0)
                     {

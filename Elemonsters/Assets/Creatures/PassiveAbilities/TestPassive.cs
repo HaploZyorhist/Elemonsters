@@ -27,7 +27,8 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
                 var damageRequest = new DamageRequest
                 {
                     ActiveCreature = request.MyTurn.CreatureID,
-                    Target = request.Target.CreatureID
+                    Target = request.Target.CreatureID,
+                    TriggerCondition = TriggerConditions.OnHit
                 };
 
                 // what kind of attack is being given
