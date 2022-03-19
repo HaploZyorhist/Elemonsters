@@ -1,4 +1,4 @@
-﻿using Elemonsters.Models.Enums;
+﻿   using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Models.Combat.Requests
 {
@@ -23,7 +23,7 @@ namespace Elemonsters.Models.Combat.Requests
         public BattleContainer Container { get; set; } = new BattleContainer();
 
         /// <summary>
-        /// how much damage is being delt
+        /// how much damage is being dealt
         /// </summary>
         public int Damage { get; set; }
 
@@ -38,7 +38,7 @@ namespace Elemonsters.Models.Combat.Requests
         public ulong ActiveCreature { get; set; }
 
         /// <summary>
-        /// target that the damage is being delt to
+        /// target that the damage is being dealt to
         /// </summary>
         public ulong Target { get; set; }
     }

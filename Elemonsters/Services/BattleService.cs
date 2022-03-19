@@ -218,45 +218,60 @@ namespace Elemonsters.Services
                     activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
                 }
 
+                // step 6 check for on attack and on hit passives
+                var onHitActivations = activeResults.DamageRequests
+                    .Where(x => (x.TriggerCondition == TriggerConditions.OnHit ||
+                                 x.TriggerCondition == TriggerConditions.DamageDealt) &&
+                                x.Damage > 0).ToList();
+
+                var onHitPassiveResults = new List<PassiveResult>();
+
+                foreach (var activation in onHitActivations)
+                {
+                    var attackerPassives = me.Abilities
+                        .Where(x => x.PassiveAbility?.TriggerConditions == TriggerConditions.OnHit &&
+                                    x.PassiveAbility.AllowedActivators.Contains(me.CreatureID))
+                        .ToList();
+
+                    var attackPassiveActivations = attackerPassives
+                        .Select(x => x.PassiveAbility.Passive(new PassiveRequest
+                        {
+                            Target = _container.Creatures
+                            .Where(x => x.CreatureID == activation.Target)
+                            .FirstOrDefault(),
+                            MyTurn = me,
+                            AbilityLevel = x.AbilityLevel,
+                            AbilityName = x.Name,
+                            Container = _container
+                        }).GetAwaiter().GetResult()).ToList();
+
+                    attackPassiveActivations.ForEach(x => onHitPassiveResults.Add(x));
+                }
+
+                // step 7 add passive results to the damage requests and to the status requests
+                onHitPassiveResults.ForEach(x => activeResults.DamageRequests.AddRange(x.DamageRequests));
+                onHitPassiveResults.ForEach(x => activeResults.StatusRequests.AddRange(x.StatusRequests));
+
+                // step 8 apply status effects
+                var statusRequests = activeResults.StatusRequests;
+                await ApplyStatusses(statusRequests);
+
                 //TODO come back and finish the passive activation thingy
-                //TODO come back and handle status additions
-
-                //// step 8 get passives that were kicked
-                //var passivesToActivate = new List<Ability>();
-
-                //foreach (var dReq in activeResults.DamageRequests)
-                //{
-                //    var passivesActivated = await GetTriggeredPassives(dReq);
-                //    dReq.
-                //    passivesToActivate.AddRange(passivesActivated);
-                //}
-
-                //// step 9 get the results of all passives kicked
-                //var passiveResults = new List<PassiveResult>();
-
-                //foreach (var ability in passivesToActivate)
-                //{
-                //    var passiveRequest = new PassiveRequest
-                //    {
-                //        Targets = ??,
-                //        AbilityName = ability.Name,
-                //        AbilityLevel = ability.AbilityLevel,
-                //        MyTurn = ??
-                //    }; 
-
-                //    var passiveResult = await ability.PassiveAbility.Passive(passiveRequest);
-
-                //    passiveResults.Add(passiveResult);
-                //}
 
                 // step 10 do all damage requests
-                var damageRequests = new List<DamageRequest>();
-                damageRequests.AddRange(activeResults.DamageRequests);
-                //passiveResults.ForEach(x => damageRequests.AddRange(x.DamageRequests));
+                var damageRequests = activeResults.DamageRequests;
 
                 await HandleDamage(damageRequests);
 
                 var targetList = damageRequests.Select(x => x.Target).Distinct().ToList();
+
+                if (activeResults.DamageRequests.Count < 1 &&
+                    activeResults.StatusRequests.Count < 1)
+                {
+                    _messages.Append(activeResults.SB.ToString());
+                    await _context.Channel.SendMessageAsync(_messages.ToString());
+                    _messages.Clear();
+                }
             }
             catch (Exception ex)
             {
@@ -267,7 +282,6 @@ namespace Elemonsters.Services
         /// method for counting down status effects
         /// </summary>
         /// <param name="myTurn">creature who is having statuses counted down</param>
-        /// <returns>object with the results of the status countdown</returns>
         private async Task CountdownStatuses(ulong myTurn)
         {
             try
@@ -277,7 +291,7 @@ namespace Elemonsters.Services
                     .FirstOrDefault();
 
                 me.Statuses
-                    .ForEach(x => x.Duration -=1);
+                    .ForEach(x => x.Duration -= 1);
 
                 var timedoutStatus = me.Statuses
                     .Where(x => x.Duration < 1)
@@ -299,7 +313,6 @@ namespace Elemonsters.Services
         /// <summary>
         /// method for selecting abilities
         /// </summary>
-        /// <param name="battleContainer">container for the battle details</param>
         /// <param name="myTurn">creature who's turn it is</param>
         /// <returns>an ability that is available to the player</returns>
         private async Task<Ability> SelectAbility(ulong myTurn)
@@ -376,35 +389,47 @@ namespace Elemonsters.Services
         }
 
         /// <summary>
-        /// method for triggering effects
+        /// method for applying statuses to characters
         /// </summary>
-        /// <returns>list of abilities that were triggered</returns>
-        private async Task<List<Ability>> GetTriggeredPassives(DamageRequest request)
+        /// <param name="statusRequests">a lis of status requests to be processed</param>
+        private async Task ApplyStatusses(List<StatusRequest> statusRequests)
         {
             try
             {
-                var triggeredAbilities = new List<Ability>();
+                foreach (var request in statusRequests)
+                {
+                    var target = _container.Creatures.Where(x => x.CreatureID == request.Target).FirstOrDefault();
 
-                //var triggers = request.ActiveCreature.Abilities.Where(x =>
-                //    (x.PassiveAbility.AllowedActivators == null ||
-                //     x.PassiveAbility.AllowedActivators.Contains(request.ActiveCreature.CreatureID)) &&
-                //    ((x.PassiveAbility.TriggerConditions == TriggerConditions.DamageDealt && request.Damage > 0) ||
-                //      x.PassiveAbility.TriggerConditions == request.TriggerCondition)).ToList();
+                    var nonStackingEffects = request.Statuses.Where(x => x.Add == AddStatusEnum.Individual).ToList();
 
-                //var selfTriggers = request.Target.Abilities.Where(x =>
-                //    (x.PassiveAbility.AllowedActivators != null ||
-                //     x.PassiveAbility.AllowedActivators.Contains(request.ActiveCreature.CreatureID) &&
-                //     x.PassiveAbility.TriggerConditions == TriggerConditions.DamageTaken)).ToList();
+                    nonStackingEffects.ForEach(x => target.Statuses.Add(x));
 
-                //triggeredAbilities.AddRange(triggers);
-                //triggeredAbilities.AddRange(selfTriggers);
+                    var stackingEffects = request.Statuses.Where(x => x.Add == AddStatusEnum.Stack).ToList();
 
+                    foreach (var effect in stackingEffects)
+                    {
+                        var targetStatus = target.Statuses.Where(x => x.Name == effect.Name).FirstOrDefault();
 
-                return triggeredAbilities;
+                        if (targetStatus == null)
+                        {
+                            target.Statuses.Add(effect);
+                        }
+                        else
+                        {
+                            targetStatus.Stacks += effect.Stacks;
+
+                            targetStatus.Duration = effect.Duration;
+
+                            if (targetStatus.Stacks > effect.MaxStacks)
+                            {
+                                targetStatus.Stacks = effect.MaxStacks;
+                            }
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
-                return null;
             }
         }
 
@@ -648,6 +673,10 @@ namespace Elemonsters.Services
 
                     _messages.AppendLine(
                         $"<@{me.User}>'s {me.Name} has {me.Stats.Health} remaining health");
+
+                    me.Statuses.RemoveAll(x => (x.Type == EffectTypes.ElementalShield ||
+                                                x.Type == EffectTypes.PhysicalShield ||
+                                                x.Type == EffectTypes.GeneralShield) && x.Value <= 0);
                 }
             }
             catch (Exception ex)

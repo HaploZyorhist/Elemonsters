@@ -47,6 +47,15 @@ namespace Elemonsters.Assets.Creatures.ActiveAbilities
                 var rand = new Random();
                 var r = rand.Next(0, 100);
 
+                // check for dodge first
+                if (r < request.Targets[0].Stats.Dodge)
+                {
+                    results.SB.AppendLine($"<@{request.MyTurn.User}>'s {request.MyTurn.Name}'s attack has missed");
+                    return results;
+                }
+
+                r = rand.Next(90, 100);
+
                 if (r < request.MyTurn.Stats.CritChance)
                 {
                     damageModifier = 1.5;

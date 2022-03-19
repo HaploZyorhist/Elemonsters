@@ -10,6 +10,7 @@ namespace Elemonsters.Assets.StatusEffects
         public RemoveStatusEnum Remove { get; set; }
         public int Duration { get; set; }
         public int Stacks { get; set; }
+        public int MaxStacks { get; set; }
         public int Value { get; set; }
         public bool ToDisplay { get; set; } = true;
     }

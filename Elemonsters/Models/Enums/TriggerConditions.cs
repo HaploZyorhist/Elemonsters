@@ -7,6 +7,10 @@
         SpellEffect,
         DamageDealt,
         DamageTaken,
+        PhyTaken,
+        EleTaken,
         SpellCast,
+        TurnStart,
+        TurnEnd,
     }
 }
