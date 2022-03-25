@@ -11,12 +11,12 @@ namespace Elemonsters.Models.Combat.Requests
         /// <summary>
         /// list of targets selected by the player
         /// </summary>
-        public List<CreatureBase> Targets { get; set; } = new List<CreatureBase>();
+        public List<ulong> Targets { get; set; }
 
         /// <summary>
         /// id of creature who is actively taking turn
         /// </summary>
-        public CreatureBase MyTurn { get; set; } = new CreatureBase();
+        public ulong MyTurn { get; set; }
 
         /// <summary>
         /// name of the ability being activated

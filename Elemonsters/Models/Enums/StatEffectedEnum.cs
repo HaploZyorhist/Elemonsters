@@ -22,6 +22,20 @@ namespace Elemonsters.Models.Enums
         Tenacity,
         CritChance,
         CritModifier,
-        Regeneration
+        Regeneration,
+        PMaxHealth,
+        PMaxEnergy,
+        PStrength,
+        PDefense,
+        PLethality,
+        PAura,
+        PSpirit,
+        PSorcery,
+        PSpeed,
+        PDodge,
+        PTenacity,
+        PCritChance,
+        PCritModifier,
+        PRegeneration
     }
 }

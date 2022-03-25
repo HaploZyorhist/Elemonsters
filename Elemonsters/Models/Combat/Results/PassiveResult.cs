@@ -11,10 +11,5 @@ namespace Elemonsters.Models.Combat.Results
         /// list of damage requests coming from an active ability
         /// </summary>
         public List<DamageRequest> DamageRequests { get; set; } = new List<DamageRequest>();
-
-        /// <summary>
-        /// list of status requests coming from an active ability
-        /// </summary>
-        public List<StatusRequest> StatusRequests { get; set; } = new List<StatusRequest>();
     }
 }

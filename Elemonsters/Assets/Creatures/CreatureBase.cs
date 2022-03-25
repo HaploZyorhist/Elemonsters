@@ -73,53 +73,7 @@ namespace Elemonsters.Assets.Creatures
 
         #endregion
 
-        #region CTOR
-
-        /// <summary>
-        /// base constructor for the creature object
-        /// </summary>
-        public CreatureBase()
-        {
-            Name = "Testy";
-            IsLeader = false;
-            CreatureID = 0;
-            User = 0;
-            Level = 1;
-            Rank = 1;
-            ActionPoints = 0;
-            Position = PositionEnum.Melee;
-            Stats = new CreatureStats
-            {
-                Strength = 100,
-                Defense = 100,
-                Lethality = 10,
-                Spirit = 100,
-                Aura = 100,
-                Sorcery = 10,
-                CritChance = 100,
-                CritModifier = 150,
-                Dodge = 100,
-                Tenacity = 100,
-                MaxHealth = 1000,
-                Health = 1000,
-                MaxEnergy = 100,
-                Energy = 100,
-                Regeneration = 100,
-                Speed = 10,
-            };
-            Elements = new CreatureElements
-            {
-                PhysicalElement = PhysicalElement.Fire,
-                PhysicalValue = 100,
-                RangedElement = MagicElement.Wind,
-                RangedValue = 100,
-            };
-            
-        }
-
-        #endregion
-
-        #region Methods
+        #region Turn Progress Methods
 
         /// <summary>
         /// causes the creature to gain action points based on their speed
@@ -164,6 +118,164 @@ namespace Elemonsters.Assets.Creatures
             {
                 return 0;
             }
+        }
+
+        #endregion
+
+        #region GetStats
+
+        /// <summary>
+        /// method for calculating stats after buff/debuff effects
+        /// </summary>
+        /// <param name="stat">enum for checking for flat buffs</param>
+        /// <param name="pStat">enum for checking for percent buffs</param>
+        /// <param name="currentStat">the current value of the stat</param>
+        /// <returns></returns>
+        public virtual async Task<int> CalculateStat(StatEffectedEnum stat, StatEffectedEnum pStat, int currentStat)
+        {
+            int result;
+
+            var flatBuff = Statuses.Where(x => x.IsBuff &&
+                                               x.Stat == stat)
+                .OrderByDescending(x => x.Value)
+                .FirstOrDefault()
+                .Value;
+
+            var percentBuff = Statuses.Where(x => x.IsBuff &&
+                                                  x.Stat == stat)
+                .OrderByDescending(x => x.Value)
+                .FirstOrDefault()
+                .Value;
+
+            var flatDebuff = Statuses.Where(x => !x.IsBuff &&
+                                                 x.Stat == pStat)
+                .OrderByDescending(x => x.Value)
+                .FirstOrDefault()
+                .Value;
+
+            var percentDebuff = Statuses.Where(x => !x.IsBuff &&
+                                                    x.Stat == pStat)
+                .OrderByDescending(x => x.Value)
+                .FirstOrDefault()
+                .Value;
+
+            result = currentStat + flatBuff - flatDebuff;
+
+            result *= percentBuff / percentDebuff;
+
+            return result;
+        }
+
+        /// <summary>
+        /// method for getting current max health
+        /// </summary>
+        /// <returns>int indicating current max health</returns>
+        public virtual async Task<int> GetCurrentMaxHealth()
+        {
+            var maxHealth = Stats.MaxHealth;
+
+            var stat = StatEffectedEnum.MaxHealth;
+            var pStat = StatEffectedEnum.PMaxHealth;
+
+            return await CalculateStat(stat, pStat, maxHealth);
+        }
+
+        /// <summary>
+        /// method for getting current max energy
+        /// </summary>
+        /// <returns>int indicating current max energy</returns>
+        public virtual async Task<int> GetCurrentMaxEnergy()
+        {
+            var maxEnergy = Stats.MaxEnergy;
+
+            var stat = StatEffectedEnum.MaxEnergy;
+            var pStat = StatEffectedEnum.PMaxEnergy;
+
+            return await CalculateStat(stat, pStat, maxEnergy);
+        }
+
+        /// <summary>
+        /// method for getting current strength
+        /// </summary>
+        /// <returns>int indicating current strength</returns>
+        public virtual async Task<int> GetCurrentStrength()
+        {
+            var strength = Stats.Strength;
+
+            var stat = StatEffectedEnum.Strength;
+            var pStat = StatEffectedEnum.PStrength;
+
+            return await CalculateStat(stat, pStat, strength);
+        }
+
+        /// <summary>
+        /// method for getting current defense
+        /// </summary>
+        /// <returns>int indicating current defense</returns>
+        public virtual async Task<int> GetCurrentDefense()
+        {
+            var defense = Stats.Defense;
+
+            var stat = StatEffectedEnum.Defense;
+            var pStat = StatEffectedEnum.PDefense;
+
+            return await CalculateStat(stat, pStat, defense);
+        }
+
+        /// <summary>
+        /// method for getting current lethality
+        /// </summary>
+        /// <returns>int indicating current lethality</returns>
+        public virtual async Task<int> GetCurrentLethality()
+        {
+            var lethality = Stats.Lethality;
+
+            var stat = StatEffectedEnum.Lethality;
+            var pStat = StatEffectedEnum.PLethality;
+
+            return await CalculateStat(stat, pStat, lethality);
+        }
+
+        /// <summary>
+        /// method for getting current spirit
+        /// </summary>
+        /// <returns>int indicating current spirit</returns>
+        public virtual async Task<int> GetCurrentSpirit()
+        {
+            var spirit = Stats.Spirit;
+
+            var stat = StatEffectedEnum.Spirit;
+            var pStat = StatEffectedEnum.PSpirit;
+
+            return await CalculateStat(stat, pStat, spirit);
+        }
+
+        /// <summary>
+        /// method for getting current aura
+        /// </summary>
+        /// <returns>int indicating current aura</returns>
+        public virtual async Task<int> GetCurrentAura()
+        {
+            var aura = Stats.Aura;
+
+            var stat = StatEffectedEnum.Aura;
+            var pStat = StatEffectedEnum.PAura;
+
+            return await CalculateStat(stat, pStat, aura);
+        }
+
+        /// <summary>
+        /// method for getting current sorcery
+        /// </summary>
+        /// <returns>int indicating current sorcery</returns>
+        public virtual async Task<int> GetCurrentSorcery()
+        {
+            var sorcery = Stats.Sorcery;
+
+            var stat = StatEffectedEnum.Sorcery;
+            var pStat = StatEffectedEnum.PSorcery;
+
+            return await CalculateStat(stat, pStat, sorcery);
         }
 
         #endregion

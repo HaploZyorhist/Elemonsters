@@ -1,16 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
+using Elemonsters.Models.StatusEffects.Results;
 
 namespace Elemonsters.Assets.Creatures.AbilitiesList
 {
+    /// <summary>
+    /// ability for adding shields to the creature
+    /// </summary>
     public class GenerateShield : Ability
     {
+        /// <summary>
+        /// base constructor for the ability
+        /// </summary>
         public GenerateShield()
         {
             Name = "Total Defense";
@@ -27,63 +30,53 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                 // create return object
                 var result = new ActiveResult();
 
-                // create list of statuses to be returned
-                var newStatus = new StatusRequest
-                {
-                    Target = request.MyTurn.CreatureID,
-                };
+                var statusEffectResults = new AddStatusEffectResult();
 
-                // first status to be added to creature
-                var effect1 = new StatusEffect
+                var me = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn)
+                    .FirstOrDefault();
+
+                var statuses = new List<BuffDebuff>();
+
+                var shield = new BuffDebuff
                 {
-                    Name = "Test Shield",
-                    Type = EffectTypes.GeneralShield,
-                    Value = 1000,
+                    Name = "Shield",
+                    IsBuff = true,
                     Duration = 3,
-                    Add = AddStatusEnum.Individual,
-                    Remove = RemoveStatusEnum.All,
+                    Stacks = 1,
+                    Level = AbilityLevel,
+                    Value = 200 + 150 * AbilityLevel,
+                    EffectType = EffectTypes.GeneralShield,
                 };
 
-                result.SB.AppendLine(
-                    $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect1.Value} {effect1.Type} for {effect1.Duration} turns");
+                statuses.Add(shield);
 
-                newStatus.Statuses.Add(effect1);
-
-                // second effect to be added to creature
-                var effect2 = new StatusEffect
+                var physicalShield = new BuffDebuff
                 {
-                    Name = "Test Physical Shield",
-                    Type = EffectTypes.PhysicalShield,
-                    Value = 500,
-                    Duration = 2,
-                    Add = AddStatusEnum.Individual,
-                    Remove = RemoveStatusEnum.All,
+                    Name = "Physical Shield",
+                    IsBuff = true,
+                    Duration = 3,
+                    Stacks = 1,
+                    Level = AbilityLevel,
+                    Value = 100 + 200 * AbilityLevel,
+                    EffectType = EffectTypes.PhysicalShield,
                 };
 
-                result.SB.AppendLine(
-                    $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect2.Value} {effect2.Type} for {effect2.Duration} turns");
+                statuses.Add(physicalShield);
 
-                newStatus.Statuses.Add(effect2);
-
-                // third effect to be added to creature
-                var effect3 = new StatusEffect
+                var elementalShield = new BuffDebuff
                 {
-                    Name = "Test Elemental Shield",
-                    Type = EffectTypes.ElementalShield,
-                    Value = 250,
-                    Duration = 1,
-                    Add = AddStatusEnum.Individual,
-                    Remove = RemoveStatusEnum.All,
+                    Name = "Elemental",
+                    IsBuff = true,
+                    Duration = 3,
+                    Stacks = 1,
+                    Level = AbilityLevel,
+                    Value = 300 + 50 * AbilityLevel,
+                    EffectType = EffectTypes.ElementalShield,
                 };
 
-                result.SB.AppendLine(
-                    $"<@{request.MyTurn.User}>'s {request.MyTurn.Name} has gained {effect3.Value} {effect3.Type} for {effect3.Duration} turns");
+                statuses.Add(elementalShield);
 
-                // add effects to list
-                newStatus.Statuses.Add(effect3);
-
-                // add status request to return object
-                result.StatusRequests.Add(newStatus);
+                me.Statuses.AddRange(statuses);
 
                 return result;
             }

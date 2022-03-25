@@ -35,31 +35,36 @@ namespace Elemonsters.Assets.StatusEffects
                 // create new result object
                 var result = new PassiveResult();
 
-                // start new damage request to pass out to result
-                var damageRequest = new DamageRequest
+                var me = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
+
+                foreach (var target in request.Targets)
                 {
-                    ActiveCreature = request.MyTurn.CreatureID,
-                    Target = request.Target.CreatureID,
-                    TriggerCondition = TriggerConditions.None
-                };
+                    // start new damage request to pass out to result
+                    var damageRequest = new DamageRequest
+                    {
+                        ActiveCreature = request.MyTurn,
+                        Target = target,
+                        TriggerCondition = TriggerConditions.None
+                    };
 
-                // what kind of attack is being given
-                damageRequest.AttackType = AttackTypeEnum.Magic;
+                    // what kind of attack is being given
+                    damageRequest.AttackType = AttackTypeEnum.Magic;
 
-                // how much penetration is in the attack
-                damageRequest.Penetration = request.MyTurn.Stats.Sorcery;
+                    // how much penetration is in the attack
+                    damageRequest.Penetration = await me.GetCurrentSorcery();
 
-                // how much the damage stat is modified by
-                double damageModifier = .35 + (Level * .05);
+                    // how much the damage stat is modified by
+                    double damageModifier = .35 + (Level * .05);
 
-                // calculate damage delt
-                var damageDealt = request.MyTurn.Stats.Aura * damageModifier;
+                    // calculate damage delt
+                    var damageDealt = await me.GetCurrentAura() * damageModifier;
 
-                // pass it to damage request
-                damageRequest.Damage = (int)damageDealt;
+                    // pass it to damage request
+                    damageRequest.Damage = (int) damageDealt;
 
-                // add the damage request to the return object
-                result.DamageRequests.Add(damageRequest);
+                    // add the damage request to the return object
+                    result.DamageRequests.Add(damageRequest);
+                }
 
                 return result;
             }

@@ -1,6 +1,6 @@
-﻿using Elemonsters.Models.Enums;
-using Elemonsters.Models.StatusEffects.Requests;
-using Elemonsters.Models.StatusEffects.Results;
+﻿using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.Combat.Results;
+using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.StatusEffects
 {
@@ -40,6 +40,11 @@ namespace Elemonsters.Assets.StatusEffects
         public int Value { get; set; }
 
         /// <summary>
+        /// the type of buff/debuff
+        /// </summary>
+        public EffectTypes EffectType { get; set; } = EffectTypes.None;
+
+        /// <summary>
         /// indicates how and when the buff/debuff can be activated
         /// </summary>
         public TriggerConditions TriggerConditions { get; set; } = TriggerConditions.None;
@@ -49,12 +54,12 @@ namespace Elemonsters.Assets.StatusEffects
         /// </summary>
         public StatEffectedEnum Stat { get; set; } = StatEffectedEnum.None;
 
-        public virtual async Task ActivateEffect()
+        public virtual async Task<PassiveResult> ActivateEffect(ActivateStatusEffectRequest request)
         {
             throw new NotImplementedException();
         }
 
-        public virtual async Task ReduceDuration()
+        public virtual async Task ReduceDuration(ReduceDurationRequest request)
         {
             throw new NotImplementedException();
         }

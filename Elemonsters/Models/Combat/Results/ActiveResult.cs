@@ -1,11 +1,6 @@
-﻿using Elemonsters.Assets.Creatures;
-using Elemonsters.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.StatusEffects.Results;
 
 namespace Elemonsters.Models.Combat.Results
 {
@@ -20,9 +15,9 @@ namespace Elemonsters.Models.Combat.Results
         public List<DamageRequest> DamageRequests { get; set; } = new List<DamageRequest>();
 
         /// <summary>
-        /// list of status requests coming from an active ability
+        /// object containing updated statuses of creatures effected by status effects
         /// </summary>
-        public List<StatusRequest> StatusRequests { get; set; } = new List<StatusRequest>();
+        public AddStatusEffectResult StatusEffectResults { get; set; } = new AddStatusEffectResult();
 
         /// <summary>
         /// string builder containing information from the activation off the ability

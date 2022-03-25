@@ -189,9 +189,9 @@ namespace Elemonsters.Services
                     }
 
                     // step 4 get target options
-                    var targetRules = await selectedAbility.ActiveAbility.GetTargetOptions();
+                    var targetRules = await selectedAbility.GetTargetOptions();
 
-                    var targets = new List<CreatureBase>();
+                    var targets = new List<ulong>();
 
                     if (targetRules.Rule != TargetingRulesEnum.NoTarget)
                     {
@@ -209,66 +209,25 @@ namespace Elemonsters.Services
                     // step 5 get results of the activated ability
                     var activeRequest = new ActiveRequest
                     {
-                        MyTurn = me,
+                        MyTurn = myTurn,
                         AbilityName = selectedAbility.Name,
                         AbilityLevel = selectedAbility.AbilityLevel,
                         Targets = targets
                     };
 
-                    activeResults = await selectedAbility.ActiveAbility.Activation(activeRequest);
+                    activeResults = await selectedAbility.Activation(activeRequest);
                 }
-
-                // step 6 check for on attack and on hit passives
-                var onHitActivations = activeResults.DamageRequests
-                    .Where(x => (x.TriggerCondition == TriggerConditions.OnHit ||
-                                 x.TriggerCondition == TriggerConditions.DamageDealt) &&
-                                x.Damage > 0).ToList();
-
-                var onHitPassiveResults = new List<PassiveResult>();
-
-                foreach (var activation in onHitActivations)
-                {
-                    var attackerPassives = me.Abilities
-                        .Where(x => x.PassiveAbilities?.TriggerConditions == TriggerConditions.OnHit &&
-                                    x.PassiveAbilities.AllowedActivators.Contains(myTurn))
-                        .ToList();
-
-                    var attackPassiveActivations = attackerPassives
-                        .Select(x => x.PassiveAbilities.Passive(new PassiveRequest
-                        {
-                            Target = _container.Creatures
-                            .Where(x => x.CreatureID == activation.Target)
-                            .FirstOrDefault(),
-                            MyTurn = me,
-                            AbilityLevel = x.AbilityLevel,
-                            AbilityName = x.Name,
-                            Container = _container
-                        }).GetAwaiter().GetResult()).ToList();
-
-                    attackPassiveActivations.ForEach(x => onHitPassiveResults.Add(x));
-                }
-
-                // step 7 add passive results to the damage requests and to the status requests
-                onHitPassiveResults.ForEach(x => activeResults.DamageRequests.AddRange(x.DamageRequests));
-                onHitPassiveResults.ForEach(x => activeResults.StatusRequests.AddRange(x.StatusRequests));
-
-                // step 8 apply status effects
-                var statusRequests = activeResults.StatusRequests;
-                await ApplyStatusses(statusRequests);
-
-                //TODO come back and finish the passive activation thingy
 
                 // step 10 do all damage requests
                 var damageRequests = activeResults.DamageRequests;
 
                 await HandleDamage(damageRequests);
 
-                var targetList = damageRequests.Select(x => x.Target).Distinct().ToList();
+                _messages.Append(activeResults.SB.ToString());
+                _messages.Append(activeResults.StatusEffectResults.SB);
 
-                if (activeResults.DamageRequests.Count < 1 &&
-                    activeResults.StatusRequests.Count < 1)
+                if (!string.IsNullOrEmpty(_messages.ToString()))
                 {
-                    _messages.Append(activeResults.SB.ToString());
                     await _context.Channel.SendMessageAsync(_messages.ToString());
                     _messages.Clear();
                 }
@@ -291,19 +250,7 @@ namespace Elemonsters.Services
                     .FirstOrDefault();
 
                 me.Statuses
-                    .ForEach(x => x.Duration -= 1);
-
-                var timedoutStatus = me.Statuses
-                    .Where(x => x.Duration < 1)
-                    .ToList();
-
-                timedoutStatus
-                    .ForEach(x => _messages
-                        .AppendLine($"{x.Name} has timed out"));
-
-                //TODO get removal type and perform the removal properly
-                me.Statuses
-                    .RemoveAll(x => x.Duration < 1);
+                    .ForEach(x => x.ReduceDuration(new ReduceDurationRequest()));
             }
             catch (Exception ex)
             {
@@ -339,7 +286,7 @@ namespace Elemonsters.Services
                     while (selectedAbility == null)
                     {
                         var abilityOptions = me.Abilities
-                            .Where(x => x.ActiveAbility != null)
+                            .Where(x => x.IsActive)
                             .ToList();
 
                         _messages.AppendLine(
@@ -367,7 +314,7 @@ namespace Elemonsters.Services
                             throw new Exception($"<@{me.User}> has left the battle");
                         }
                         else if (!int.TryParse(response, out int intResponse) ||
-                                 intResponse > abilityOptions.Count ||
+                                 intResponse > abilityOptions.Count() ||
                                  intResponse < 1)
                         {
                             _messages
@@ -385,51 +332,6 @@ namespace Elemonsters.Services
             catch (Exception ex)
             {
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// method for applying statuses to characters
-        /// </summary>
-        /// <param name="statusRequests">a lis of status requests to be processed</param>
-        private async Task ApplyStatusses(List<StatusRequest> statusRequests)
-        {
-            try
-            {
-                foreach (var request in statusRequests)
-                {
-                    var target = _container.Creatures.Where(x => x.CreatureID == request.Target).FirstOrDefault();
-
-                    var nonStackingEffects = request.Statuses.Where(x => x.Add == AddStatusEnum.Individual).ToList();
-
-                    nonStackingEffects.ForEach(x => target.Statuses.Add(x));
-
-                    var stackingEffects = request.Statuses.Where(x => x.Add == AddStatusEnum.Stack).ToList();
-
-                    foreach (var effect in stackingEffects)
-                    {
-                        var targetStatus = target.Statuses.Where(x => x.Name == effect.Name).FirstOrDefault();
-
-                        if (targetStatus == null)
-                        {
-                            target.Statuses.Add(effect);
-                        }
-                        else
-                        {
-                            targetStatus.Stacks += effect.Stacks;
-
-                            targetStatus.Duration = effect.Duration;
-
-                            if (targetStatus.Stacks > effect.MaxStacks)
-                            {
-                                targetStatus.Stacks = effect.MaxStacks;
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
             }
         }
 
@@ -525,7 +427,7 @@ namespace Elemonsters.Services
 
                     var elementalShields = me.Statuses
                         .Where(x =>
-                            x.Type == EffectTypes.ElementalShield)
+                            x.EffectType == EffectTypes.ElementalShield)
                         .OrderBy(x => x.Duration)
                         .ToList();
 
@@ -541,7 +443,7 @@ namespace Elemonsters.Services
 
                     var physicalShields = me.Statuses
                         .Where(x =>
-                            x.Type == EffectTypes.PhysicalShield)
+                            x.EffectType == EffectTypes.PhysicalShield)
                         .OrderBy(x => x.Duration)
                         .ToList();
 
@@ -557,7 +459,7 @@ namespace Elemonsters.Services
 
                     var generalShields = me.Statuses
                         .Where(x =>
-                            x.Type == EffectTypes.GeneralShield)
+                            x.EffectType == EffectTypes.GeneralShield)
                         .OrderBy(x => x.Duration)
                         .ToList();
 
@@ -677,9 +579,9 @@ namespace Elemonsters.Services
                     _messages.AppendLine(
                         $"<@{me.User}>'s {me.Name} has {me.Stats.Health} remaining health");
 
-                    me.Statuses.RemoveAll(x => (x.Type == EffectTypes.ElementalShield ||
-                                                x.Type == EffectTypes.PhysicalShield ||
-                                                x.Type == EffectTypes.GeneralShield) && x.Value <= 0);
+                    me.Statuses.RemoveAll(x => (x.EffectType == EffectTypes.ElementalShield ||
+                                                x.EffectType == EffectTypes.PhysicalShield ||
+                                                x.EffectType == EffectTypes.GeneralShield) && x.Value <= 0);
                 }
             }
             catch (Exception ex)

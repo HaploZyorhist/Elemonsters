@@ -27,14 +27,16 @@ namespace Elemonsters.Services
         }
 
         /// <inheritdoc />
-        public async Task<List<CreatureBase>> GetTargets(GetTargetsRequest request)
+        public async Task<List<ulong>> GetTargets(GetTargetsRequest request)
         {
             try
             {
                 // temp ai
                 if (request.MyTurn == 0)
                 {
-                    return request.Container.Creatures.Where(x => x.CreatureID != request.MyTurn).ToList();
+                    var myTurn = new List<ulong>();
+                    myTurn.Add(request.MyTurn);
+                    return myTurn;
                 }
 
                 switch (request.Rules.Rule)
@@ -52,7 +54,7 @@ namespace Elemonsters.Services
             }
         }
 
-        private async Task<List<CreatureBase>> GetStandardTargets(GetTargetsRequest request)
+        private async Task<List<ulong>> GetStandardTargets(GetTargetsRequest request)
         {
             try
             {
@@ -81,7 +83,7 @@ namespace Elemonsters.Services
 
                 StringBuilder sb = new StringBuilder();
 
-                var chosenTargets = new List<CreatureBase>();
+                var chosenTargets = new List<ulong>();
 
                 while (chosenTargets.Count < request.Rules.TotalTargets)
                 {
@@ -101,7 +103,7 @@ namespace Elemonsters.Services
 
                     var choice = int.Parse(playerResponse);
 
-                    chosenTargets.Add(availableTargets[choice - 1]);
+                    chosenTargets.Add(availableTargets[choice - 1].CreatureID);
 
                     if (request.Rules.UniqueTargets)
                     {

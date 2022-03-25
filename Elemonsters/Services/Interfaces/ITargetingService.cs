@@ -15,6 +15,6 @@ namespace Elemonsters.Services.Interfaces
         /// </summary>
         /// <param name="request">details on the rules of the target options</param>
         /// <returns>list of creatures that the player has chosen to hit</returns>
-        Task<List<CreatureBase>> GetTargets(GetTargetsRequest request);
+        Task<List<ulong>> GetTargets(GetTargetsRequest request);
     }
 }

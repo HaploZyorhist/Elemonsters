@@ -1,6 +1,5 @@
 ﻿using Elemonsters.Services.Interfaces;
 using Elemonsters.Assets.Creatures;
-using Elemonsters.Assets.Creatures.ActiveAbilities;
 using Elemonsters.Assets.Creatures.PassiveAbilities;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Enums;
