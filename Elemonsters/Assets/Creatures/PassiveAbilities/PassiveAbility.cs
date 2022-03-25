@@ -1,6 +1,5 @@
-﻿using Elemonsters.Models.Combat.Requests;
-using Elemonsters.Models.Combat.Results;
-using Elemonsters.Models.Enums;
+﻿using Elemonsters.Models.StatusEffects.Requests;
+using Elemonsters.Models.StatusEffects.Results;
 
 namespace Elemonsters.Assets.Creatures.PassiveAbilities
 {
@@ -10,22 +9,11 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
     public class PassiveAbility
     {
         /// <summary>
-        /// the condition that can trigger this ability
+        /// method for adding the status effect to the creature
         /// </summary>
-        public TriggerConditions TriggerConditions { get; set; } = TriggerConditions.None;
-
-        /// <summary>
-        /// the creatures who are able to trigger this ability
-        /// </summary>
-        public List<ulong> AllowedActivators { get; set; } = new List<ulong>();
-
-        /// <summary>
-        /// the method that triggers when the trigger conditions are met
-        /// </summary>
-        /// <param name="request">request object used for activating the passive</param>
-        /// <returns>result object containing the details of what the passive did</returns>
-        /// <exception cref="NotImplementedException"></exception>
-        public virtual async Task<PassiveResult> Passive(PassiveRequest request)
+        /// <param name="request">object containing the data about what the status effect is being added to</param>
+        /// <returns>object containing the results of the status effect add</returns>
+        public virtual async Task<AddStatusEffectResult> AddStatusEffect(AddStatusEffectRequest request)
         {
             throw new NotImplementedException();
         }

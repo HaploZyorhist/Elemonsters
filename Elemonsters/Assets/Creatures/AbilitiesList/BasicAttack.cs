@@ -1,15 +1,30 @@
-﻿using System.Data;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
-namespace Elemonsters.Assets.Creatures.ActiveAbilities
+namespace Elemonsters.Assets.Creatures.AbilitiesList
 {
     /// <summary>
-    /// Ability for performing basic physical attacks
+    /// object containing details on a basic attack
     /// </summary>
-    public class BasicAttackAbility : ActiveAbility
+    public class BasicAttack : Ability
     {
+        /// <summary>
+        /// base constructor for a basic attack
+        /// </summary>
+        public BasicAttack()
+        {
+            Name = "Basic Attack";
+            AbilityLevel = 1;
+            IsActive = true;
+            AbilitySlot = AbilitySlot.BasicAttack;
+        }
+
         /// <inheritdoc />
         public override async Task<ActiveResult> Activation(ActiveRequest request)
         {

@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Models.Combat;
-using Elemonsters.Models.Combat.Requests;
-using Elemonsters.Models.Combat.Results;
+﻿using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Enums;
+using Elemonsters.Models.StatusEffects.Requests;
+using Elemonsters.Models.StatusEffects.Results;
 
 namespace Elemonsters.Assets.Creatures.PassiveAbilities
 {
@@ -16,46 +11,32 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
     public class TestPassive : PassiveAbility
     {
         /// <inheritdoc />
-        public override async Task<PassiveResult> Passive(PassiveRequest request)
+        public override async Task<AddStatusEffectResult> AddStatusEffect(AddStatusEffectRequest request)
         {
-            try
+            var target = request.Container.Creatures.Where(x => x.CreatureID == request.Target).FirstOrDefault();
+
+            var newPassive = new TestPassiveBuff
             {
-                // create new result object
-                var result = new PassiveResult();
+                Name = "Blight",
+                IsBuff = true,
+                Duration = 0,
+                Stacks = 0,
+                Value = 0,
+                Level = request.Ability.AbilityLevel,
+                TriggerConditions = TriggerConditions.OnHit,
+                Stat = StatEffectedEnum.None
+            };
 
-                // start new damage request to pass out to result
-                var damageRequest = new DamageRequest
-                {
-                    ActiveCreature = request.MyTurn.CreatureID,
-                    Target = request.Target.CreatureID,
-                    TriggerCondition = TriggerConditions.OnHit
-                };
+            target.Statuses.Add(newPassive);
 
-                // what kind of attack is being given
-                damageRequest.AttackType = AttackTypeEnum.Magic;
-
-                // how much penetration is in the attack
-                damageRequest.Penetration = request.MyTurn.Stats.Sorcery;
-
-                // how much the damage stat is modified by
-                double damageModifier = .35 + (request.AbilityLevel * .05);
-
-                // calculate damage delt
-                var damageDealt = request.MyTurn.Stats.Aura * damageModifier;
-
-                // pass it to damage request
-                damageRequest.Damage = (int)damageDealt;
-
-                // add the damage request to the return object
-                result.DamageRequests.Add(damageRequest);
-
-                return result;
-            }
-
-            catch (Exception ex)
+            var result = new AddStatusEffectResult
             {
-                return null;
-            }
+                Container = request.Container
+            };
+
+            result.SB.AppendLine($"<@{target.User}>'s {target.Name} has gained {newPassive.Name}");
+
+            return result;
         }
     }
 }

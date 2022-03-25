@@ -1,6 +1,9 @@
 ﻿namespace Elemonsters.Models.Enums
 {
-    public enum AbilityTypes
+    /// <summary>
+    /// enum indicating which ability slot the ability is from
+    /// </summary>
+    public enum AbilitySlot
     {
         Leader,
         Passive,

@@ -1,5 +1,6 @@
-﻿using Elemonsters.Assets.Creatures.ActiveAbilities;
-using Elemonsters.Assets.Creatures.PassiveAbilities;
+﻿using Elemonsters.Assets.Creatures.PassiveAbilities;
+using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures
@@ -20,18 +21,38 @@ namespace Elemonsters.Assets.Creatures
         public int AbilityLevel { get; set; } = 0;
 
         /// <summary>
-        /// what type the ability is of
+        /// indicates if the ability has an active effect
         /// </summary>
-        public AbilityTypes AbilityType { get; set; }
+        public bool IsActive { get; set; } = false;
+
+        /// <summary>
+        /// what slot the ability is in
+        /// </summary>
+        public AbilitySlot AbilitySlot { get; set; }
 
         /// <summary>
         /// the creature's passive ability
         /// </summary>
-        public PassiveAbility PassiveAbility { get; set; }
+        public List<PassiveAbility> PassiveAbilities { get; set; } = new List<PassiveAbility>();
 
         /// <summary>
-        /// the creature's active ability
+        /// method for activating ability
         /// </summary>
-        public ActiveAbility ActiveAbility { get; set; }
+        /// <param name="request">request object containing data for activation</param>
+        /// <returns>list of results to be processed and applied to creatures</returns>
+        public virtual async Task<ActiveResult> Activation(ActiveRequest request)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// method for getting targets for ability
+        /// </summary>
+        /// <param name="request">request object with data for target selection</param>
+        /// <returns>object containing options on what targets are available</returns>
+        public virtual async Task<TargetRulesResult> GetTargetOptions()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

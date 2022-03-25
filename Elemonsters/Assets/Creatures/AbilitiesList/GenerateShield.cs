@@ -1,15 +1,24 @@
-﻿using Elemonsters.Assets.StatusEffects;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
-namespace Elemonsters.Assets.Creatures.ActiveAbilities
+namespace Elemonsters.Assets.Creatures.AbilitiesList
 {
-    /// <summary>
-    /// Active ability for testing shields
-    /// </summary>
-    public class GenerateShieldAbility : ActiveAbility
+    public class GenerateShield : Ability
     {
+        public GenerateShield()
+        {
+            Name = "Total Defense";
+            AbilityLevel = 0;
+            IsActive = true;
+            AbilitySlot = AbilitySlot.FirstAbility;
+        }
+
         /// <inheritdoc />
         public override async Task<ActiveResult> Activation(ActiveRequest request)
         {

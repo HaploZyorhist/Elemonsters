@@ -7,6 +7,7 @@ namespace Elemonsters.Models.Combat.Requests
     /// </summary>
     public class ActiveRequest
     {
+        public BattleContainer Container { get; set; } = new BattleContainer();
         /// <summary>
         /// list of targets selected by the player
         /// </summary>
@@ -15,7 +16,7 @@ namespace Elemonsters.Models.Combat.Requests
         /// <summary>
         /// id of creature who is actively taking turn
         /// </summary>
-        public CreatureBase MyTurn { get; set; }
+        public CreatureBase MyTurn { get; set; } = new CreatureBase();
 
         /// <summary>
         /// name of the ability being activated

@@ -104,21 +104,21 @@ namespace Elemonsters.Services
                 {
                     Name = "Basic Attack",
                     AbilityLevel = 1,
-                    AbilityType = AbilityTypes.BasicAttack
+                    AbilitySlot = AbilitySlot.BasicAttack
                 });
 
                 creature.Abilities.Add(new Ability
                 {
                     Name = "Test Passive",
                     AbilityLevel = 1,
-                    AbilityType = AbilityTypes.Passive,
+                    AbilitySlot = AbilitySlot.Passive,
                 });
 
                 creature.Abilities.Add(new Ability
                 {
                     Name = "Test Shielding",
                     AbilityLevel = 1,
-                    AbilityType = AbilityTypes.FirstAbility
+                    AbilitySlot = AbilitySlot.FirstAbility
                 });
 
                 var type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "BasicAttackAbility");
@@ -135,9 +135,7 @@ namespace Elemonsters.Services
                     .Where(x => string.Equals(x.Name, "Test Passive", StringComparison.OrdinalIgnoreCase))
                     .FirstOrDefault();
 
-                passiveAbility.PassiveAbility = (PassiveAbility)Activator.CreateInstance(type);
-                passiveAbility.PassiveAbility.TriggerConditions = TriggerConditions.OnHit;
-                passiveAbility.PassiveAbility.AllowedActivators.Add(creatureRequest.CreatureID);
+                passiveAbility.PassiveAbilities.Add((PassiveAbility)Activator.CreateInstance(type));
 
                 type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "GenerateShieldAbility");
 

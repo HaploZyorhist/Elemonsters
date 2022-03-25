@@ -2,6 +2,7 @@
 {
     public enum EffectTypes
     {
+        None,
         GeneralShield,
         PhysicalShield,
         ElementalShield,

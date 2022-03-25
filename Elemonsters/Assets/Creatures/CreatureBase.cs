@@ -16,6 +16,11 @@ namespace Elemonsters.Assets.Creatures
         public string Name { get; set; }
 
         /// <summary>
+        /// bool indicating if the creature is the leader of the party
+        /// </summary>
+        public bool IsLeader { get; set; }
+
+        /// <summary>
         /// user of the creature
         /// </summary>
         public ulong User { get; set; }
@@ -61,7 +66,10 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public List<Ability> Abilities { get; set; } = new List<Ability>();
 
-        public List<StatusEffect> Statuses { get; set; } = new List<StatusEffect>();
+        /// <summary>
+        /// list of buffs and debuffs that the character currently has applied
+        /// </summary>
+        public List<BuffDebuff> Statuses { get; set; } = new List<BuffDebuff>();
 
         #endregion
 
@@ -73,6 +81,7 @@ namespace Elemonsters.Assets.Creatures
         public CreatureBase()
         {
             Name = "Testy";
+            IsLeader = false;
             CreatureID = 0;
             User = 0;
             Level = 1;
@@ -154,31 +163,6 @@ namespace Elemonsters.Assets.Creatures
             catch (Exception ex)
             {
                 return 0;
-            }
-        }
-
-        /// <summary>
-        /// method for removing a status effect from a character
-        /// </summary>
-        /// <param name="effect">effect to be removed</param
-        public async Task RemoveStatusEffect(StatusEffect effect)
-        {
-            try
-            {
-                var stauses = Statuses.ToList();
-
-                var matchingStatuses = Statuses
-                    .Where(x => x.Name == effect.Name)
-                    .OrderBy(x => x.Duration)
-                    .ToList();
-
-                if (matchingStatuses.Count > 0)
-                {
-                    Statuses.Remove(matchingStatuses.FirstOrDefault());
-                }
-            }
-            catch (Exception ex)
-            {
             }
         }
 

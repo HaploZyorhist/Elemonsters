@@ -229,12 +229,12 @@ namespace Elemonsters.Services
                 foreach (var activation in onHitActivations)
                 {
                     var attackerPassives = me.Abilities
-                        .Where(x => x.PassiveAbility?.TriggerConditions == TriggerConditions.OnHit &&
-                                    x.PassiveAbility.AllowedActivators.Contains(myTurn))
+                        .Where(x => x.PassiveAbilities?.TriggerConditions == TriggerConditions.OnHit &&
+                                    x.PassiveAbilities.AllowedActivators.Contains(myTurn))
                         .ToList();
 
                     var attackPassiveActivations = attackerPassives
-                        .Select(x => x.PassiveAbility.Passive(new PassiveRequest
+                        .Select(x => x.PassiveAbilities.Passive(new PassiveRequest
                         {
                             Target = _container.Creatures
                             .Where(x => x.CreatureID == activation.Target)
