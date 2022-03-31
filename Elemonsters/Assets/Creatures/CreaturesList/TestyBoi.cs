@@ -54,6 +54,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
                 AbilitySlot = AbilitySlot.BasicAttack,
                 IsActive = true,
                 Name = "Basic Attack",
+                IsLearned = true,
             });
 
             Abilities.Add
@@ -63,6 +64,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
                 AbilitySlot = AbilitySlot.FirstAbility,
                 IsActive = false,
                 Name = "Blight",
+                IsLearned = true,
             });
 
             Abilities.Add
@@ -72,6 +74,8 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
                 AbilitySlot = AbilitySlot.SecondAbility,
                 IsActive = true,
                 Name = "Total Defense",
+                IsLearned = true,
+                Cost = 25,
             });
         }
     }

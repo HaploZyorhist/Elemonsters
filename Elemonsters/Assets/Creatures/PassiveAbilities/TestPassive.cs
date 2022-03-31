@@ -13,28 +13,30 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
         /// <inheritdoc />
         public override async Task<AddStatusEffectResult> AddStatusEffect(AddStatusEffectRequest request)
         {
-            var target = request.Container.Creatures.Where(x => x.CreatureID == request.Target).FirstOrDefault();
+            var result = new AddStatusEffectResult();
 
-            var newPassive = new TestPassiveBuff
+            foreach (var target in request.Targets)
             {
-                Name = "Blight",
-                IsBuff = true,
-                Duration = 0,
-                Stacks = 0,
-                Value = 0,
-                Level = request.Ability.AbilityLevel,
-                TriggerConditions = TriggerConditions.OnHit,
-                Stat = StatEffectedEnum.None
-            };
+                var targetCreature = request.Container.Creatures.Where(x => x.CreatureID == target).FirstOrDefault();
 
-            target.Statuses.Add(newPassive);
+                var newPassive = new TestPassiveBuff
+                {
+                    Name = "Blight",
+                    IsBuff = true,
+                    Duration = 0,
+                    Stacks = 0,
+                    Value = 0,
+                    Level = request.Ability.AbilityLevel,
+                    TriggerConditions = TriggerConditions.OnHit,
+                    Stat = StatEffectedEnum.None
+                };
 
-            var result = new AddStatusEffectResult
-            {
-                Container = request.Container
-            };
+                targetCreature.Statuses.Add(newPassive);
 
-            result.SB.AppendLine($"<@{target.User}>'s {target.Name} has gained {newPassive.Name}");
+                result.SB.AppendLine($"<@{targetCreature.User}>'s {targetCreature.Name} has gained {newPassive.Name}");
+            }
+
+            result.Container = request.Container;
 
             return result;
         }

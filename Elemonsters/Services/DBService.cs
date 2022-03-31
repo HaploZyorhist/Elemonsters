@@ -95,56 +95,13 @@ namespace Elemonsters.Services
         }
 
         /// <inheritdoc />
-        public async Task<CreatureBase> GetCreatureBase(CreatureBase creature, StatsRequest creatureRequest)
+        public async Task<CreatureBase> GetCreatureBase(string creatureClass)
         {
             try
             {
-                creature.Abilities.Add(new Ability
-                {
-                    Name = "Basic Attack",
-                    AbilityLevel = 1,
-                    AbilitySlot = AbilitySlot.BasicAttack
-                });
+                var type = typeof(CreatureBase).Assembly.GetTypes().Single(t => t.Name == creatureClass);
 
-                creature.Abilities.Add(new Ability
-                {
-                    Name = "Test Passive",
-                    AbilityLevel = 1,
-                    AbilitySlot = AbilitySlot.Passive,
-                });
-
-                creature.Abilities.Add(new Ability
-                {
-                    Name = "Test Shielding",
-                    AbilityLevel = 1,
-                    AbilitySlot = AbilitySlot.FirstAbility
-                });
-
-                var type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "BasicAttackAbility");
-
-                var basicAttackAbility = creature.Abilities
-                    .Where(x => string.Equals(x.Name, "Basic Attack", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault();
-
-                basicAttackAbility.ActiveAbility = (ActiveAbility)Activator.CreateInstance(type);
-
-                type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "TestPassive");
-
-                var passiveAbility = creature.Abilities
-                    .Where(x => string.Equals(x.Name, "Test Passive", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault();
-
-                passiveAbility.PassiveAbilities.Add((PassiveAbility)Activator.CreateInstance(type));
-
-                type = typeof(Ability).Assembly.GetTypes().Single(t => t.Name == "GenerateShieldAbility");
-
-                var firstAbility = creature.Abilities
-                    .Where(x => string.Equals(x.Name, "Test Shielding", StringComparison.OrdinalIgnoreCase))
-                    .FirstOrDefault();
-
-                firstAbility.ActiveAbility = (ActiveAbility)Activator.CreateInstance(type);
-
-                creature.CreatureID = creatureRequest.CreatureID;
+                var creature = (CreatureBase)Activator.CreateInstance(type);
 
                 return creature;
             }

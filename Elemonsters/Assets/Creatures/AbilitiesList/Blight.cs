@@ -1,4 +1,5 @@
 ﻿using Elemonsters.Assets.Creatures.PassiveAbilities;
+using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Assets.Creatures.AbilitiesList
@@ -15,6 +16,28 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
             var newPassive = new TestPassive();
 
             PassiveAbilities.Add(newPassive);
+        }
+
+
+        /// <inheritdoc />
+        public override async Task<TargetRulesResult> GetTargetOptions()
+        {
+            try
+            {
+                // create result object
+                var result = new TargetRulesResult
+                {
+                    Rule = TargetingRulesEnum.Self,
+                    TotalTargets = 1,
+                    UniqueTargets = true
+                };
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
         }
     }
 }

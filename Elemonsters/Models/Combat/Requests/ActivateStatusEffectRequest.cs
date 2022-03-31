@@ -24,6 +24,6 @@ namespace Elemonsters.Models.Combat.Requests
         /// <summary>
         /// list of creature ids of the targets to be hit
         /// </summary>
-        public List<ulong> Targets { get; set; }
+        public List<ulong> Targets { get; set; } = new List<ulong>();
     }
 }

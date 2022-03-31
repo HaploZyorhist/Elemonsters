@@ -9,6 +9,7 @@ using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Factory.Requests;
+using Elemonsters.Models.StatusEffects.Requests;
 
 namespace Elemonsters.Services
 {
@@ -60,10 +61,51 @@ namespace Elemonsters.Services
                     _messages.AppendLine($"{player.Mention}, you have the monster {creatures.Where(x => x.User == player.Id).FirstOrDefault().Name} in your party");
                 }
 
-                battleContainer.Creatures.AddRange(creatures);
+                _container.Creatures.AddRange(creatures);
 
                 await _context.Channel.SendMessageAsync(_messages.ToString());
                 _messages.Clear();
+
+                //TODO refactor this and clean it up
+                foreach (var creature in battleContainer.Creatures)
+                {
+                    var passives = creature.Abilities
+                        .Where(x => !x.IsActive)
+                        .ToList();
+
+                    foreach (var passive in passives)
+                    {
+                        var allPassives = passive.PassiveAbilities.ToList();
+
+                        var targetRules = await passive.GetTargetOptions();
+
+                        var targetingRequest = new GetTargetsRequest
+                        {
+                            Rules = targetRules,
+                            Container = _container,
+                            Context = _context,
+                            MyTurn = creature.CreatureID
+                        };
+
+                        var targets = await _targetingService.GetTargets(targetingRequest);
+
+                        foreach (var p in allPassives)
+                        {
+                            var seRequest = new AddStatusEffectRequest
+                            {
+                                Ability = passive,
+                                Container = _container,
+                                Targets = targets
+                            };
+
+                            var activations = await p.AddStatusEffect(seRequest);
+
+                            _container = activations.Container;
+                            _messages.Append(activations.SB.ToString());
+                        }
+                    }
+
+                }
 
                 // loop while both players have at least 1 alive team member
                 var winner = await StartBattleLoop();
@@ -210,7 +252,8 @@ namespace Elemonsters.Services
                         MyTurn = myTurn,
                         AbilityName = selectedAbility.Name,
                         AbilityLevel = selectedAbility.AbilityLevel,
-                        Targets = targets
+                        Targets = targets,
+                        Container = _container,
                     };
 
                     activeResults = await selectedAbility.Activation(activeRequest);
@@ -284,7 +327,8 @@ namespace Elemonsters.Services
                     while (selectedAbility == null)
                     {
                         var abilityOptions = me.Abilities
-                            .Where(x => x.IsActive)
+                            .Where(x => x.IsActive &&
+                                        x.IsLearned)
                             .ToList();
 
                         _messages.AppendLine(
@@ -292,7 +336,7 @@ namespace Elemonsters.Services
 
                         for (int i = 0; i < abilityOptions.Count; i++)
                         {
-                            _messages.AppendLine($"{i + 1}: {abilityOptions[i].Name}");
+                            _messages.AppendLine($"{i + 1}: {abilityOptions[i].Name}, cost({abilityOptions[i].Cost})");
                         }
 
                         var playerResponseRequest = new PlayerResponseRequest
@@ -307,20 +351,28 @@ namespace Elemonsters.Services
 
                         _messages.Clear();
 
+                        bool parseSuccess = int.TryParse(response, out int intResponse);
+
                         if (response == null)
                         {
                             throw new Exception($"<@{me.User}> has left the battle");
                         }
-                        else if (!int.TryParse(response, out int intResponse) ||
+                        else if (!parseSuccess ||
                                  intResponse > abilityOptions.Count() ||
                                  intResponse < 1)
                         {
                             _messages
                                 .AppendLine($"<@{me.User}> please enter a valid selection");
                         }
+                        else if (abilityOptions[intResponse - 1].Cost > me.Stats.Energy)
+                        {
+                            _messages
+                                .AppendLine($"<@{me.User}> {me.Name} does not have enough energy to use this ability");
+                        }
                         else
                         {
                             selectedAbility = abilityOptions[intResponse - 1];
+                            me.Stats.Energy -= abilityOptions[intResponse - 1].Cost;
                         }
                     }
                 }
@@ -370,7 +422,10 @@ namespace Elemonsters.Services
                             Target = me,
                             AttackType = AttackTypeEnum.Physical,
                             Damage = x.Damage,
-                            Penetration = x.Penetration
+                            Penetration = x.Penetration,
+                            Attacker = _container.Creatures
+                                .Where(y => y.CreatureID == x.ActiveCreature)
+                                .FirstOrDefault(),
                         })
                         .ToList();
 
@@ -391,7 +446,10 @@ namespace Elemonsters.Services
                             Target = me,
                             AttackType = AttackTypeEnum.Magic,
                             Damage = x.Damage,
-                            Penetration = x.Penetration
+                            Penetration = x.Penetration,
+                            Attacker = _container.Creatures
+                                .Where(y => y.CreatureID == x.ActiveCreature)
+                                .FirstOrDefault(),
                         })
                         .ToList();
 

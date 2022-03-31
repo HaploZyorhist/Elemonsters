@@ -77,6 +77,27 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                             $"<@{me.User}>'s {me.Name} has landed a critical hit");
                     }
 
+                    // add in on hit effects
+                    var onHits = me.Statuses.Where(x => x.TriggerConditions == TriggerConditions.OnHit).ToList();
+
+                    foreach (var effect in onHits)
+                    {
+                        var targets = new List<ulong>();
+
+                        targets.Add(target.CreatureID);
+
+                        var effectRequest = new ActivateStatusEffectRequest
+                        {
+                            Container = request.Container,
+                            MyTurn = request.MyTurn,
+                            Targets = targets
+                        };
+
+                        var activationResult = await effect.ActivateEffect(effectRequest);
+
+                        results.DamageRequests.AddRange(activationResult.DamageRequests);
+                    }
+
                     // calculates damage after crit
                     var damageDouble = me.Stats.Strength * damageModifier;
 

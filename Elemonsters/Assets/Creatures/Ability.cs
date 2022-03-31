@@ -31,6 +31,16 @@ namespace Elemonsters.Assets.Creatures
         public AbilitySlot AbilitySlot { get; set; }
 
         /// <summary>
+        /// indicates whether the ability has been learned yet
+        /// </summary>
+        public bool IsLearned { get; set; } = false;
+
+        /// <summary>
+        /// the cost to activate the ability
+        /// </summary>
+        public int Cost { get; set; } = 0;
+
+        /// <summary>
         /// the creature's passive ability
         /// </summary>
         public List<PassiveAbility> PassiveAbilities { get; set; } = new List<PassiveAbility>();

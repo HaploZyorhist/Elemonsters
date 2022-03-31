@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Creatures;
+﻿using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Combat;
 
 namespace Elemonsters.Models.StatusEffects.Requests
@@ -26,6 +21,6 @@ namespace Elemonsters.Models.StatusEffects.Requests
         /// <summary>
         /// target of the status effect
         /// </summary>
-        public ulong Target { get; set; }
+        public List<ulong> Targets { get; set; }
     }
 }

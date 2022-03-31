@@ -25,10 +25,9 @@ namespace Elemonsters.Services.Interfaces
         /// <summary>
         /// gets the base creature from the database
         /// </summary>
-        /// <param name="creature">the base for a new creature</param>
-        /// <param name="creatureRequest">the request for the creature to create</param>
+        /// <param name="creatureClass">the class name of the creature</param>
         /// <returns>creature base object containing base setup for a creature</returns>
-        Task<CreatureBase> GetCreatureBase(CreatureBase creature, StatsRequest creatureRequest);
+        Task<CreatureBase> GetCreatureBase(string creatureClass);
 
         /// <summary>
         /// gets the elements assigned to a creature from the database

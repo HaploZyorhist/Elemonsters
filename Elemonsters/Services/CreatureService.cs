@@ -31,9 +31,7 @@ namespace Elemonsters.Services
         {
             try
             {
-                var creature = new CreatureBase();
-
-                creature = await _dbService.GetCreatureBase(creature, creatureRequest);
+                var creature = await _dbService.GetCreatureBase("TestyBoi");
 
                 var creatureStats = await _dbService.GetCreatureStats(creatureRequest.CreatureID);
 

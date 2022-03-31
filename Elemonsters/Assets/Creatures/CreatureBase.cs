@@ -137,31 +137,51 @@ namespace Elemonsters.Assets.Creatures
 
             var flatBuff = Statuses.Where(x => x.IsBuff &&
                                                x.Stat == stat)
-                .OrderByDescending(x => x.Value)
-                .FirstOrDefault()
-                .Value;
+                ?.OrderByDescending(x => x.Value)
+                ?.FirstOrDefault()
+                ?.Value;
+
 
             var percentBuff = Statuses.Where(x => x.IsBuff &&
                                                   x.Stat == stat)
-                .OrderByDescending(x => x.Value)
-                .FirstOrDefault()
-                .Value;
+                ?.OrderByDescending(x => x.Value)
+                ?.FirstOrDefault()
+                ?.Value;
 
             var flatDebuff = Statuses.Where(x => !x.IsBuff &&
                                                  x.Stat == pStat)
-                .OrderByDescending(x => x.Value)
-                .FirstOrDefault()
-                .Value;
+                ?.OrderByDescending(x => x.Value)
+                ?.FirstOrDefault()
+                ?.Value;
 
             var percentDebuff = Statuses.Where(x => !x.IsBuff &&
                                                     x.Stat == pStat)
-                .OrderByDescending(x => x.Value)
-                .FirstOrDefault()
-                .Value;
+                ?.OrderByDescending(x => x.Value)
+                ?.FirstOrDefault()
+                ?.Value;
 
-            result = currentStat + flatBuff - flatDebuff;
+            if (flatBuff == null)
+            {
+                flatBuff = 0;
+            }
 
-            result *= percentBuff / percentDebuff;
+            if (flatDebuff == null)
+            {
+                flatDebuff = 0;
+            }
+
+            if (percentBuff == null)
+            {
+                percentBuff = 1;
+            }
+            
+            if (percentDebuff == null)
+            {
+                percentDebuff = 1;
+            }
+            result = (int)currentStat + (int)flatBuff - (int)flatDebuff;
+
+            result *= (int)percentBuff / (int)percentDebuff;
 
             return result;
         }

@@ -1,12 +1,9 @@
-﻿using System.Net;
-using System.Text;
-using System.Xml.Serialization;
+﻿using System.Text;
 using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace Elemonsters.Services
 {
