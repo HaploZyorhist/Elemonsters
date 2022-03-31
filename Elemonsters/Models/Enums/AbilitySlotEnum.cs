@@ -3,7 +3,7 @@
     /// <summary>
     /// enum indicating which ability slot the ability is from
     /// </summary>
-    public enum AbilitySlot
+    public enum AbilitySlotEnum
     {
         Leader,
         Passive,

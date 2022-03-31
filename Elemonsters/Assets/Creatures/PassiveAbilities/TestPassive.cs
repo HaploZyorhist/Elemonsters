@@ -27,7 +27,7 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
                     Stacks = 0,
                     Value = 0,
                     Level = request.Ability.AbilityLevel,
-                    TriggerConditions = TriggerConditions.OnHit,
+                    TriggerConditions = TriggerConditionsEnum.OnHit,
                     Stat = StatEffectedEnum.None
                 };
 

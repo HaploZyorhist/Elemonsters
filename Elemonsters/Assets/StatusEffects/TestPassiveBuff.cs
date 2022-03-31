@@ -23,7 +23,7 @@ namespace Elemonsters.Assets.StatusEffects
             Stacks = 0;
             Value = 0;
             Level = 0;
-            TriggerConditions = TriggerConditions.OnHit;
+            TriggerConditions = TriggerConditionsEnum.OnHit;
             Stat = StatEffectedEnum.None;
         }
 
@@ -44,7 +44,7 @@ namespace Elemonsters.Assets.StatusEffects
                     {
                         ActiveCreature = request.MyTurn,
                         Target = target,
-                        TriggerCondition = TriggerConditions.None
+                        TriggerCondition = TriggerConditionsEnum.None
                     };
 
                     // what kind of attack is being given

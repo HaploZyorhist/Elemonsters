@@ -41,6 +41,7 @@ namespace Elemonsters.Services
 
                 creature.Stats = updatedStats;
                 creature.Elements = creatureElements;
+                creature.CreatureID = creatureRequest.CreatureID;
                 
                 return creature;
             }

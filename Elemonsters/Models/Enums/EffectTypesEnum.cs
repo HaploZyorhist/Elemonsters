@@ -1,6 +1,6 @@
 ﻿namespace Elemonsters.Models.Enums
 {
-    public enum EffectTypes
+    public enum EffectTypesEnum
     {
         None,
         GeneralShield,

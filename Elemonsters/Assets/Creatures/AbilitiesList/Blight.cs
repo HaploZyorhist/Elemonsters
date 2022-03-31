@@ -11,7 +11,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
             Name = "Blight";
             AbilityLevel = 0;
             IsActive = false;
-            AbilitySlot = AbilitySlot.SecondAbility;
+            AbilitySlot = AbilitySlotEnum.SecondAbility;
 
             var newPassive = new TestPassive();
 

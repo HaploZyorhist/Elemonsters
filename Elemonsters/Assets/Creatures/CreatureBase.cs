@@ -141,6 +141,9 @@ namespace Elemonsters.Assets.Creatures
                 ?.FirstOrDefault()
                 ?.Value;
 
+            flatBuff = flatBuff == null ?
+                0 :
+                flatBuff;
 
             var percentBuff = Statuses.Where(x => x.IsBuff &&
                                                   x.Stat == stat)
@@ -148,11 +151,19 @@ namespace Elemonsters.Assets.Creatures
                 ?.FirstOrDefault()
                 ?.Value;
 
+            percentBuff = percentBuff == null ?
+                0 :
+                percentBuff;
+
             var flatDebuff = Statuses.Where(x => !x.IsBuff &&
                                                  x.Stat == pStat)
                 ?.OrderByDescending(x => x.Value)
                 ?.FirstOrDefault()
                 ?.Value;
+
+            flatDebuff = flatDebuff == null ?
+                0 :
+                flatDebuff;
 
             var percentDebuff = Statuses.Where(x => !x.IsBuff &&
                                                     x.Stat == pStat)
@@ -160,28 +171,13 @@ namespace Elemonsters.Assets.Creatures
                 ?.FirstOrDefault()
                 ?.Value;
 
-            if (flatBuff == null)
-            {
-                flatBuff = 0;
-            }
+            percentDebuff = percentDebuff == null ?
+                0 :
+                percentDebuff;
 
-            if (flatDebuff == null)
-            {
-                flatDebuff = 0;
-            }
+            result = currentStat + (int)flatBuff - (int)flatDebuff;
 
-            if (percentBuff == null)
-            {
-                percentBuff = 1;
-            }
-            
-            if (percentDebuff == null)
-            {
-                percentDebuff = 1;
-            }
-            result = (int)currentStat + (int)flatBuff - (int)flatDebuff;
-
-            result *= (int)percentBuff / (int)percentDebuff;
+            result *= (100 + (int)percentBuff) / (100 + (int)percentDebuff);
 
             return result;
         }

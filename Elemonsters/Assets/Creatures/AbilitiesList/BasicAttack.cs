@@ -17,7 +17,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
             Name = "Basic Attack";
             AbilityLevel = 1;
             IsActive = true;
-            AbilitySlot = AbilitySlot.BasicAttack;
+            AbilitySlot = AbilitySlotEnum.BasicAttack;
         }
 
         /// <inheritdoc />
@@ -45,7 +45,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     {
                         ActiveCreature = request.MyTurn,
                         Target = target.CreatureID,
-                        TriggerCondition = TriggerConditions.OnHit
+                        TriggerCondition = TriggerConditionsEnum.OnHit
                     };
 
                     // physical attack, uses physical attack stats
@@ -78,7 +78,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     }
 
                     // add in on hit effects
-                    var onHits = me.Statuses.Where(x => x.TriggerConditions == TriggerConditions.OnHit).ToList();
+                    var onHits = me.Statuses.Where(x => x.TriggerConditions == TriggerConditionsEnum.OnHit).ToList();
 
                     foreach (var effect in onHits)
                     {

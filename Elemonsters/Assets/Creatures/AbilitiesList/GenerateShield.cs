@@ -19,7 +19,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
             Name = "Total Defense";
             AbilityLevel = 0;
             IsActive = true;
-            AbilitySlot = AbilitySlot.FirstAbility;
+            AbilitySlot = AbilitySlotEnum.FirstAbility;
         }
 
         /// <inheritdoc />
@@ -45,7 +45,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     Stacks = 1,
                     Level = AbilityLevel,
                     Value = 200 + 150 * AbilityLevel,
-                    EffectType = EffectTypes.GeneralShield,
+                    EffectType = EffectTypesEnum.GeneralShield,
                 };
 
                 statuses.Add(shield);
@@ -58,7 +58,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     Stacks = 1,
                     Level = AbilityLevel,
                     Value = 100 + 200 * AbilityLevel,
-                    EffectType = EffectTypes.PhysicalShield,
+                    EffectType = EffectTypesEnum.PhysicalShield,
                 };
 
                 statuses.Add(physicalShield);
@@ -71,7 +71,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     Stacks = 1,
                     Level = AbilityLevel,
                     Value = 300 + 50 * AbilityLevel,
-                    EffectType = EffectTypes.ElementalShield,
+                    EffectType = EffectTypesEnum.ElementalShield,
                 };
 
                 statuses.Add(elementalShield);

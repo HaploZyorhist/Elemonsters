@@ -42,12 +42,12 @@ namespace Elemonsters.Assets.StatusEffects
         /// <summary>
         /// the type of buff/debuff
         /// </summary>
-        public EffectTypes EffectType { get; set; } = EffectTypes.None;
+        public EffectTypesEnum EffectType { get; set; } = EffectTypesEnum.None;
 
         /// <summary>
         /// indicates how and when the buff/debuff can be activated
         /// </summary>
-        public TriggerConditions TriggerConditions { get; set; } = TriggerConditions.None;
+        public TriggerConditionsEnum TriggerConditions { get; set; } = TriggerConditionsEnum.None;
 
         /// <summary>
         /// if the buff/debuff effects a stat, indicates what stat is effected

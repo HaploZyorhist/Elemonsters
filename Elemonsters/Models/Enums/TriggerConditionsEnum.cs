@@ -1,6 +1,6 @@
 ﻿namespace Elemonsters.Models.Enums
 {
-    public enum TriggerConditions
+    public enum TriggerConditionsEnum
     {
         None,
         OnHit,

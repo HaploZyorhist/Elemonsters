@@ -120,16 +120,16 @@ namespace Elemonsters.Services
 
                 if (creatureID == 0)
                 {
-                    elements.PhysicalElement = PhysicalElement.Fire;
+                    elements.PhysicalElement = PhysicalElementEnum.Fire;
                     elements.PhysicalValue = 100;
-                    elements.RangedElement = MagicElement.Wind;
+                    elements.RangedElement = MagicElementEnum.Wind;
                     elements.RangedValue = 100;
                 }
                 else
                 {
-                    elements.PhysicalElement = PhysicalElement.Water;
+                    elements.PhysicalElement = PhysicalElementEnum.Water;
                     elements.PhysicalValue = 100;
-                    elements.RangedElement = MagicElement.Earth;
+                    elements.RangedElement = MagicElementEnum.Earth;
                     elements.RangedValue = 100;
                 }
 

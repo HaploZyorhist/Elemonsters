@@ -28,7 +28,7 @@ namespace Elemonsters.Assets.Creatures
         /// <summary>
         /// what slot the ability is in
         /// </summary>
-        public AbilitySlot AbilitySlot { get; set; }
+        public AbilitySlotEnum AbilitySlot { get; set; }
 
         /// <summary>
         /// indicates whether the ability has been learned yet

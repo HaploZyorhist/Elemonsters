@@ -89,12 +89,12 @@ namespace Elemonsters.Factories
                         {
                             return 1;
                         }
-                        else if ((attacker.Elements.PhysicalElement == PhysicalElement.Fire &&
-                                  target.Elements.PhysicalElement == PhysicalElement.Wood) ||
-                                 (attacker.Elements.PhysicalElement == PhysicalElement.Water &&
-                                  target.Elements.PhysicalElement == PhysicalElement.Fire) ||
-                                 (attacker.Elements.PhysicalElement == PhysicalElement.Wood &&
-                                  target.Elements.PhysicalElement == PhysicalElement.Water))
+                        else if ((attacker.Elements.PhysicalElement == PhysicalElementEnum.Fire &&
+                                  target.Elements.PhysicalElement == PhysicalElementEnum.Wood) ||
+                                 (attacker.Elements.PhysicalElement == PhysicalElementEnum.Water &&
+                                  target.Elements.PhysicalElement == PhysicalElementEnum.Fire) ||
+                                 (attacker.Elements.PhysicalElement == PhysicalElementEnum.Wood &&
+                                  target.Elements.PhysicalElement == PhysicalElementEnum.Water))
                         {
                             return 1.25;
                         }
@@ -108,12 +108,12 @@ namespace Elemonsters.Factories
                         {
                             return 1;
                         }
-                        else if ((attacker.Elements.RangedElement == MagicElement.Electric &&
-                                  target.Elements.RangedElement == MagicElement.Wind) ||
-                                 (attacker.Elements.RangedElement == MagicElement.Earth &&
-                                  target.Elements.RangedElement == MagicElement.Electric) ||
-                                 (attacker.Elements.RangedElement == MagicElement.Wind &&
-                                  target.Elements.RangedElement == MagicElement.Earth))
+                        else if ((attacker.Elements.RangedElement == MagicElementEnum.Electric &&
+                                  target.Elements.RangedElement == MagicElementEnum.Wind) ||
+                                 (attacker.Elements.RangedElement == MagicElementEnum.Earth &&
+                                  target.Elements.RangedElement == MagicElementEnum.Electric) ||
+                                 (attacker.Elements.RangedElement == MagicElementEnum.Wind &&
+                                  target.Elements.RangedElement == MagicElementEnum.Earth))
                         {
                             return 1.25;
                         }

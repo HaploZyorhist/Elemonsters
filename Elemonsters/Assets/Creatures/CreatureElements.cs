@@ -10,7 +10,7 @@ namespace Elemonsters.Assets.Creatures
         /// <summary>
         /// The creature's physical element
         /// </summary>
-        public PhysicalElement PhysicalElement { get; set; }
+        public PhysicalElementEnum PhysicalElement { get; set; }
 
         /// <summary>
         /// how much resource has been put into the physical element
@@ -20,7 +20,7 @@ namespace Elemonsters.Assets.Creatures
         /// <summary>
         /// the creature's element for ranged attacks
         /// </summary>
-        public MagicElement RangedElement { get; set; }
+        public MagicElementEnum RangedElement { get; set; }
 
         /// <summary>
         /// how much resource has been put into the ranged element

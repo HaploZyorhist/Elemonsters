@@ -41,6 +41,9 @@ namespace Elemonsters.Services
                     case TargetingRulesEnum.Standard:
                         return await GetStandardTargets(request);
 
+                    case TargetingRulesEnum.Self:
+                        return await GetSelfTarget(request);
+
                     default:
                         return null;
                 }
@@ -51,6 +54,9 @@ namespace Elemonsters.Services
             }
         }
 
+        /// <summary>
+        /// standard method of getting targets
+        /// </summary>
         private async Task<List<ulong>> GetStandardTargets(GetTargetsRequest request)
         {
             try
@@ -113,6 +119,25 @@ namespace Elemonsters.Services
                 return chosenTargets;
             }
             catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// method for getting self as a target
+        /// </summary>
+        private async Task<List<ulong>> GetSelfTarget(GetTargetsRequest request)
+        {
+            try
+            {
+                List<ulong> targets = new List<ulong>();
+
+                targets.Add(request.MyTurn);
+
+                return targets;
+            }
+            catch
             {
                 return null;
             }

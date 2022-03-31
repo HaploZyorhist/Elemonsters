@@ -27,6 +27,9 @@ namespace Elemonsters.Services
         public BattleContainer _container;
         public StringBuilder _messages = new StringBuilder();
 
+        /// <summary>
+        /// base constructor for battle service
+        /// </summary>
         public BattleService(IPartyService partyService,
                              DamageFactory damageFactory,
                              IChatService chatService,
@@ -46,14 +49,17 @@ namespace Elemonsters.Services
 
             try
             {
+                // if only 1 player in the battle, add a bot
                 if (battleContainer.Players.Count == 1)
                 {
                     var bot = await _context.Client.GetUserAsync(Environment.GetEnvironmentVariable("BotName"), Environment.GetEnvironmentVariable("BotDiscriminator"));
                     battleContainer.Players.Add(bot);
                 }
 
+                // start a list of creatures who are in the battle
                 var creatures = new List<CreatureBase>();
 
+                // gets the creatures for each player
                 foreach (var player in battleContainer.Players)
                 {
                     var party = await _partyService.GetParty(player.Id);
@@ -114,8 +120,6 @@ namespace Elemonsters.Services
             }
             catch (Exception ex)
             {
-                // await battleContainer.Context.Channel.SendMessageAsync(ex.Message);
-
                 return;
             }
         }
@@ -157,6 +161,13 @@ namespace Elemonsters.Services
                         me.ActionPoints -= 100;
                         _messages.AppendLine($"<@{me.User}>'s {me.Name} has taken a turn and reduced their action points by 100");
 
+                        // pass messages out
+                        if (!string.IsNullOrEmpty(_messages.ToString()))
+                        {
+                            await _context.Channel.SendMessageAsync(_messages.ToString());
+                            _messages.Clear();
+                        }
+
                         // recheck alive creatures
                         aliveCreatures = _container.Creatures.Where(x => x.Stats.Health > 0).ToList();
                         teamAAliveMembers = aliveCreatures.Where(x => x.User == _container.Players[0].Id).ToList();
@@ -170,22 +181,16 @@ namespace Elemonsters.Services
                                 : $"<@{teamBAliveMembers[0].User}> has won the battle";
                             _messages.AppendLine(sb);
                             winner = $"<@{teamAAliveMembers[0].User}>";
-                            break;
-                        }
 
-                        // pass messages out
-                        if (!string.IsNullOrEmpty(_messages.ToString()))
-                        {
                             await _context.Channel.SendMessageAsync(_messages.ToString());
                             _messages.Clear();
+
+                            break;
                         }
                     }
 
                     // tick up the turn counter for all creatures
-                    foreach (var alive in aliveCreatures)
-                    {
-                        await alive.Tick();
-                    }
+                    aliveCreatures.ForEach(x => x.Tick().GetAwaiter());
                 }
 
                 return winner;
@@ -207,12 +212,12 @@ namespace Elemonsters.Services
                 // step 1 get creature taking turn
                 var me = _container.Creatures.Where(x => x.CreatureID == myTurn).FirstOrDefault();
 
-                // step 1, gain energy
+                // step 2, gain energy
                 var energyGained = await me.Gain(0, 1);
 
                 _messages.AppendLine($"<@{me.User}>'s {me.Name} has gained {energyGained} energy, bringing them to {me.Stats.Energy}");
 
-                // step 2 countdown statuses
+                // step 3 countdown statuses
                 await CountdownStatuses(myTurn);
 
                 // loop through this until an ability can successfully be performed
@@ -220,7 +225,7 @@ namespace Elemonsters.Services
 
                 while (activeResults == null)
                 {
-                    // step 3 select and ability to use
+                    // step 4 select and ability to use
                     var selectedAbility = await SelectAbility(myTurn);
 
                     if (selectedAbility == null)
@@ -228,7 +233,7 @@ namespace Elemonsters.Services
                         throw new Exception($"<@{me.User}> failed to select an ability properly");
                     }
 
-                    // step 4 get target options
+                    // step 5 get target options
                     var targetRules = await selectedAbility.GetTargetOptions();
 
                     var targets = new List<ulong>();
@@ -246,7 +251,7 @@ namespace Elemonsters.Services
                         targets = await _targetingService.GetTargets(targetingRequest);
                     }
 
-                    // step 5 get results of the activated ability
+                    // step 6 get results of the activated ability
                     var activeRequest = new ActiveRequest
                     {
                         MyTurn = myTurn,
@@ -259,7 +264,7 @@ namespace Elemonsters.Services
                     activeResults = await selectedAbility.Activation(activeRequest);
                 }
 
-                // step 10 do all damage requests
+                // step 7 do all damage requests
                 var damageRequests = activeResults.DamageRequests;
 
                 await HandleDamage(damageRequests);
@@ -483,7 +488,7 @@ namespace Elemonsters.Services
 
                     var elementalShields = me.Statuses
                         .Where(x =>
-                            x.EffectType == EffectTypes.ElementalShield)
+                            x.EffectType == EffectTypesEnum.ElementalShield)
                         .OrderBy(x => x.Duration)
                         .ToList();
 
@@ -499,7 +504,7 @@ namespace Elemonsters.Services
 
                     var physicalShields = me.Statuses
                         .Where(x =>
-                            x.EffectType == EffectTypes.PhysicalShield)
+                            x.EffectType == EffectTypesEnum.PhysicalShield)
                         .OrderBy(x => x.Duration)
                         .ToList();
 
@@ -515,7 +520,7 @@ namespace Elemonsters.Services
 
                     var generalShields = me.Statuses
                         .Where(x =>
-                            x.EffectType == EffectTypes.GeneralShield)
+                            x.EffectType == EffectTypesEnum.GeneralShield)
                         .OrderBy(x => x.Duration)
                         .ToList();
 
@@ -635,9 +640,9 @@ namespace Elemonsters.Services
                     _messages.AppendLine(
                         $"<@{me.User}>'s {me.Name} has {me.Stats.Health} remaining health");
 
-                    me.Statuses.RemoveAll(x => (x.EffectType == EffectTypes.ElementalShield ||
-                                                x.EffectType == EffectTypes.PhysicalShield ||
-                                                x.EffectType == EffectTypes.GeneralShield) && x.Value <= 0);
+                    me.Statuses.RemoveAll(x => (x.EffectType == EffectTypesEnum.ElementalShield ||
+                                                x.EffectType == EffectTypesEnum.PhysicalShield ||
+                                                x.EffectType == EffectTypesEnum.GeneralShield) && x.Value <= 0);
                 }
             }
             catch (Exception ex)

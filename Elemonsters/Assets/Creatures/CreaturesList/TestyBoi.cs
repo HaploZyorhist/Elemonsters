@@ -41,9 +41,9 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             };
             Elements = new CreatureElements
             {
-                PhysicalElement = PhysicalElement.Fire,
+                PhysicalElement = PhysicalElementEnum.Fire,
                 PhysicalValue = 100,
-                RangedElement = MagicElement.Wind,
+                RangedElement = MagicElementEnum.Wind,
                 RangedValue = 100,
             };
 
@@ -51,7 +51,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             (new BasicAttack
             {
                 AbilityLevel = 1,
-                AbilitySlot = AbilitySlot.BasicAttack,
+                AbilitySlot = AbilitySlotEnum.BasicAttack,
                 IsActive = true,
                 Name = "Basic Attack",
                 IsLearned = true,
@@ -61,7 +61,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             (new Blight
             {
                 AbilityLevel = Level,
-                AbilitySlot = AbilitySlot.FirstAbility,
+                AbilitySlot = AbilitySlotEnum.FirstAbility,
                 IsActive = false,
                 Name = "Blight",
                 IsLearned = true,
@@ -71,7 +71,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             (new GenerateShield
             {
                 AbilityLevel = Level,
-                AbilitySlot = AbilitySlot.SecondAbility,
+                AbilitySlot = AbilitySlotEnum.SecondAbility,
                 IsActive = true,
                 Name = "Total Defense",
                 IsLearned = true,

@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 namespace Elemonsters.Models.Enums
 {
     /// <summary>
-    /// enum containing the elemental types of ranged attacks
+    /// enum for the elemental types of physical attacks
     /// </summary>
-    public enum MagicElement
+    public enum PhysicalElementEnum
     {
-        Electric,
-        Wind,
-        Earth
+        Fire,
+        Water,
+        Wood
     }
 }

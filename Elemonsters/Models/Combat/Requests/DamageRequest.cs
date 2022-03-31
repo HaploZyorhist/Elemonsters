@@ -15,7 +15,7 @@ namespace Elemonsters.Models.Combat.Requests
         /// <summary>
         /// type of effects that the ability will trigger
         /// </summary>
-        public TriggerConditions TriggerCondition { get; set; } = TriggerConditions.None;
+        public TriggerConditionsEnum TriggerCondition { get; set; } = TriggerConditionsEnum.None;
 
         /// <summary>
         /// object containing all of the details of the battle
