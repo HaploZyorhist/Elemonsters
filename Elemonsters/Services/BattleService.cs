@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Elemonsters.Assets.Creatures;
+﻿using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
@@ -10,7 +9,6 @@ using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Factory.Requests;
-using Microsoft.EntityFrameworkCore.Query;
 
 namespace Elemonsters.Services
 {
