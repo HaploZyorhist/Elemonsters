@@ -18,7 +18,6 @@ namespace Elemonsters.Factories
         {
             try
             {
-                //TODO Get elements!!
                 // true damage doesn't care about defenses
                 if (request.AttackType == AttackTypeEnum.True)
                 {

@@ -17,7 +17,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             CreatureID = 0;
             User = 0;
             Level = 1;
-            Rank = 1;
+            Rank = RankEnum.Bronze;
             ActionPoints = 0;
             Position = PositionEnum.Melee;
             Stats = new CreatureStats

@@ -78,45 +78,7 @@ namespace Elemonsters.Services
                 await _context.Channel.SendMessageAsync(_messages.ToString());
                 _messages.Clear();
 
-                //TODO refactor this and clean it up
-                foreach (var creature in battleContainer.Creatures)
-                {
-                    var passives = creature.Abilities
-                        .Where(x => !x.IsActive)
-                        .ToList();
-
-                    foreach (var passive in passives)
-                    {
-                        var allPassives = passive.PassiveAbilities.ToList();
-
-                        var targetRules = await passive.GetTargetOptions();
-
-                        var targetingRequest = new GetTargetsRequest
-                        {
-                            Rules = targetRules,
-                            Creatures = _creatures,
-                            Context = _context,
-                            MyTurn = creature.CreatureID
-                        };
-
-                        var targets = await _targetingService.GetTargets(targetingRequest);
-
-                        foreach (var p in allPassives)
-                        {
-                            var seRequest = new AddStatusEffectRequest
-                            {
-                                Ability = passive,
-                                Creatures = _creatures,
-                                Targets = targets
-                            };
-
-                            var activations = await p.AddStatusEffect(seRequest);
-
-                            _messages.Append(activations.SB.ToString());
-                        }
-                    }
-
-                }
+                await AssignPassives();
 
                 // loop while both players have at least 1 alive team member
                 var winner = await StartBattleLoop();
@@ -288,6 +250,56 @@ namespace Elemonsters.Services
             }
         }
 
+        public async Task AssignPassives()
+        {
+            //TODO continue to refactor and clean this up
+            try
+            {
+                foreach (var creature in _creatures)
+                {
+                    var passives = creature.Abilities
+                        .Where(x => x.PassiveAbilities.Count > 0)
+                        .ToList();
+
+                    foreach (var passive in passives)
+                    {
+                        var allPassives = passive.PassiveAbilities.ToList();
+
+                        var targetRules = await passive.GetTargetOptions();
+
+                        var targetingRequest = new GetTargetsRequest
+                        {
+                            Rules = targetRules,
+                            Creatures = _creatures,
+                            Context = _context,
+                            MyTurn = creature.CreatureID
+                        };
+
+                        var targets = await _targetingService.GetTargets(targetingRequest);
+
+                        foreach (var p in allPassives)
+                        {
+                            var seRequest = new AddStatusEffectRequest
+                            {
+                                Ability = passive,
+                                Creatures = _creatures,
+                                Targets = targets
+                            };
+
+                            var activations = await p.AddStatusEffect(seRequest);
+
+                            _messages.Append(activations.SB.ToString());
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                
+            }
+        }
+
         /// <summary>
         /// method for counting down status effects
         /// </summary>
@@ -405,8 +417,6 @@ namespace Elemonsters.Services
         {
             try
             {
-                // TODO get defense values
-
                 var targetList = damageRequests
                     .Select(x => x.Target)
                     .Distinct()

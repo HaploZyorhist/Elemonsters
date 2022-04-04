@@ -45,11 +45,10 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         public PositionEnum Position { get; set; }
 
-        //TODO This needs to be an enum
         /// <summary>
         /// the current upgrade of the creature
         /// </summary>
-        public int Rank { get; set; }
+        public RankEnum Rank { get; set; } = RankEnum.Bronze;
 
         /// <summary>
         /// the stats of the creature
