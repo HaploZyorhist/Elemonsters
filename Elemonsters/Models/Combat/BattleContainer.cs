@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Commands;
 using Elemonsters.Assets.Creatures;
 
 namespace Elemonsters.Models.Combat
@@ -9,6 +10,8 @@ namespace Elemonsters.Models.Combat
 
         public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
 
-        public int Instance { get; set; } = 0;
+        public Guid Instance { get; set; }
+
+        public ICommandContext Context { get; set; }
     }
 }

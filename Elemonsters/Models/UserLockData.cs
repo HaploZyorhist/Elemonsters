@@ -13,9 +13,9 @@ namespace Elemonsters.Models
         public bool IsLocked { get; set; }
 
         /// <summary>
-        /// int for tracking what instance of an activity the user is doing
+        /// guid for tracking what instance of an activity the user is doing
         /// </summary>
-        public int Instance { get; set; }
+        public Guid Instance { get; set; }
 
         /// <summary>
         /// action the user is locked doing

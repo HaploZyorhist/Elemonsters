@@ -36,8 +36,6 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
                 result.SB.AppendLine($"<@{targetCreature.User}>'s {targetCreature.Name} has gained {newPassive.Name}");
             }
 
-            result.Container = request.Container;
-
             return result;
         }
     }

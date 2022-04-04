@@ -1,7 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using Discord;
 using Elemonsters.Models;
 using Elemonsters.Models.Enums;
+using Elemonsters.Models.Locker.Requests;
+using Elemonsters.Models.Locker.Results;
 using Elemonsters.Services.Interfaces;
 
 namespace Elemonsters.Services
@@ -19,163 +20,152 @@ namespace Elemonsters.Services
         #region Locking/Unlocking
 
         /// <inheritdoc />
-        public async Task<bool> CheckGeneralLock(IUser user)
+        public async Task<CheckLockResult> CheckLock(CheckLockRequest request)
         {
             try
             {
                 // try to add user to the list
-                var ins = lockout.TryAdd(user.Id, new UserLockData
+                lockout.TryAdd(request.User, new UserLockData
                 {
                     IsLocked = false,
                     Activity = ActivityEnum.None,
-                    Instance = 0
+                    Instance = new Guid()
                 });
 
-                if (ins == true)
-                {
-                    return false;
-                }
-
                 // if user was already in list get user
-                var userDetails = lockout[user.Id];
+                var userDetails = lockout[request.User];
 
-                // check if user is locked
-                if (!userDetails.IsLocked)
+                var result = new CheckLockResult
                 {
-                    return false;
-                }
+                    User = request.User,
+                    IsLocked = userDetails.IsLocked,
+                    Activity = userDetails.Activity,
+                    Instance = userDetails.Instance
+                };
 
                 // user was locked
-                return true;
+                return result;
             }
             catch (Exception ex)
             {
                 // something bad happened, assume they are not locked
-                return false;
+                return null;
             }
         }
 
         /// <inheritdoc />
-        public async Task<bool> CheckActivityLock(IUser user, ActivityEnum activity, int instance)
+        public async Task<CompareLockResult> CompareLock(CompareLockRequest request)
         {
             try
             {
                 // try to add user to the list
-                var ins = lockout.TryAdd(user.Id, new UserLockData
+                lockout.TryAdd(request.User, new UserLockData
                 {
                     IsLocked = false,
                     Activity = ActivityEnum.None,
-                    Instance = 0
+                    Instance = new Guid()
                 });
 
-                if (ins == true)
-                {
-                    return false;
-                }
-
                 // if user was already in list get user
-                var userDetails = lockout[user.Id];
+                var userDetails = lockout[request.User];
 
-                // check if user is doing what they are supposed to be doing
-                if (!userDetails.IsLocked ||
-                    userDetails.Instance != instance ||
-                    userDetails.Activity != activity)
+                var result = new CompareLockResult();
+
+                if (request.Activity == userDetails.Activity &&
+                    request.Instance == userDetails.Instance &&
+                    userDetails.IsLocked)
                 {
-                    return false;
+                    result.LockMatch = true;
                 }
 
-                // user was locked and doing what they are supposed to be doing
-                return true;
+                // user was locked
+                return result;
             }
             catch (Exception ex)
             {
-                return false;
+                // something bad happened, assume they are not locked
+                return null;
             }
         }
 
         /// <inheritdoc />
-        public async Task<bool> LockUser(IUser user, ActivityEnum activity, int instance)
+        public async Task<LockUserResult> LockUser(LockUserRequest request)
         {
             try
             {
                 // todo: add ban checker to ensure the user isn't banned from playing
 
                 // try to add user to the list
-                var ins = lockout.TryAdd(user.Id, new UserLockData
+                lockout.TryAdd(request.User, new UserLockData
                 {
                     IsLocked = true,
-                    Activity = activity,
-                    Instance = instance
+                    Activity = request.Activity,
+                    Instance = request.Instance
                 });
 
-                // user successfully added and locked
-                if (ins == true)
-                {
-                    return true;
-                }
-
                 // if user was already in list get user
-                var userDetails = lockout[user.Id];
+                var userDetails = lockout[request.User];
 
-                // user already locked doing something else
-                if (userDetails.IsLocked)
+                // if user is not currently locked, update lock
+                if (!userDetails.IsLocked)
                 {
-                    return false;
+                    lockout[request.User].IsLocked = true;
+                    lockout[request.User].Activity = request.Activity;
+                    lockout[request.User].Instance = request.Instance;
                 }
 
-                // otherwise lock user
-                lockout[user.Id].Instance = instance;
-                lockout[user.Id].Activity = activity;
-                lockout[user.Id].IsLocked = true;
+                var result = new LockUserResult
+                {
+                    User = request.User,
+                    Activity = lockout[request.User].Activity,
+                    IsLocked = lockout[request.User].IsLocked,
+                    Instance = lockout[request.User].Instance
+                };
 
                 // user was successfully locked
-                return true;
+                return result;
 
             }
             catch (Exception ex)
             {
-                return false;
+                return null;
             }
         }
 
         /// <inheritdoc />
-        public async Task<bool> UnlockUser(IUser user)
+        public async Task<UnlockUserResult> UnlockUser(UnlockUserRequest request)
         {
             try
             {
                 // try to add user to the list
-                var ins = lockout.TryAdd(user.Id, new UserLockData
+                lockout.TryAdd(request.User, new UserLockData
                 {
                     IsLocked = false,
                     Activity = ActivityEnum.None,
-                    Instance = 0
+                    Instance = new Guid()
                 });
 
-                // user was not in the list
-                if (ins == true)
+                // update user lock data
+                lockout[request.User].Activity = ActivityEnum.None;
+                lockout[request.User].IsLocked = false;
+                lockout[request.User].Instance = new Guid();
+
+                var userData = lockout[request.User];
+
+                var result = new UnlockUserResult
                 {
-                    return false;
-                }
-
-                // if user was already in list get user
-                var userDetails = lockout[user.Id];
-
-                // user was not locked
-                if (!userDetails.IsLocked)
-                {
-                    return false;
-                }
-
-                lockout[user.Id].Instance = 0;
-                lockout[user.Id].Activity = ActivityEnum.None;
-                lockout[user.Id].IsLocked = false;
+                    User = request.User,
+                    Activity = userData.Activity,
+                    IsLocked = userData.IsLocked,
+                    Instance = userData.Instance
+                };
 
                 // user was locked
-                return true;
+                return result;
             }
             catch (Exception ex)
             {
-                return false;
+                return null;
             }
         }
 

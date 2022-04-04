@@ -4,6 +4,7 @@ using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System.Text;
+using Discord;
 using Discord.Commands;
 using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
@@ -24,7 +25,9 @@ namespace Elemonsters.Services
         private readonly ITargetingService _targetingService;
 
         public ICommandContext _context;
-        public BattleContainer _container;
+        public List<CreatureBase> _creatures;
+        public List<IUser> _players;
+        public Guid _instance;
         public StringBuilder _messages = new StringBuilder();
 
         /// <summary>
@@ -44,8 +47,10 @@ namespace Elemonsters.Services
         /// <inheritdoc />
         public async Task BeginBattle(ICommandContext context, BattleContainer battleContainer)
         {
-            _context = context;
-            _container = battleContainer;
+            _context = battleContainer.Context;
+            _creatures = battleContainer.Creatures;
+            _instance = battleContainer.Instance;
+            _players = battleContainer.Players;
 
             try
             {
@@ -67,7 +72,7 @@ namespace Elemonsters.Services
                     _messages.AppendLine($"{player.Mention}, you have the monster {creatures.Where(x => x.User == player.Id).FirstOrDefault().Name} in your party");
                 }
 
-                _container.Creatures.AddRange(creatures);
+                _creatures.AddRange(creatures);
 
                 await _context.Channel.SendMessageAsync(_messages.ToString());
                 _messages.Clear();
@@ -106,7 +111,6 @@ namespace Elemonsters.Services
 
                             var activations = await p.AddStatusEffect(seRequest);
 
-                            _container = activations.Container;
                             _messages.Append(activations.SB.ToString());
                         }
                     }
@@ -136,9 +140,9 @@ namespace Elemonsters.Services
                 string winner = "";
 
                 // creatures that are not dead at the moment
-                var aliveCreatures = _container.Creatures.Where(x => x.Stats.Health > 0).ToList();
-                var teamAAliveMembers = aliveCreatures.Where(x => x.User == _container.Players[0].Id).ToList();
-                var teamBAliveMembers = aliveCreatures.Where(x => x.User == _container.Players[1].Id).ToList();
+                var aliveCreatures = _creatures.Where(x => x.Stats.Health > 0).ToList();
+                var teamAAliveMembers = aliveCreatures.Where(x => x.User == _players[0].Id).ToList();
+                var teamBAliveMembers = aliveCreatures.Where(x => x.User == _players[1].Id).ToList();
 
                 // the loop that will continue until 1 player has no alive members
                 while (teamAAliveMembers.Count > 0 && teamBAliveMembers.Count > 0)
@@ -169,9 +173,9 @@ namespace Elemonsters.Services
                         }
 
                         // recheck alive creatures
-                        aliveCreatures = _container.Creatures.Where(x => x.Stats.Health > 0).ToList();
-                        teamAAliveMembers = aliveCreatures.Where(x => x.User == _container.Players[0].Id).ToList();
-                        teamBAliveMembers = aliveCreatures.Where(x => x.User == _container.Players[1].Id).ToList();
+                        aliveCreatures = _creatures.Where(x => x.Stats.Health > 0).ToList();
+                        teamAAliveMembers = aliveCreatures.Where(x => x.User == _players[0].Id).ToList();
+                        teamBAliveMembers = aliveCreatures.Where(x => x.User == _players[1].Id).ToList();
 
                         // check win condition
                         if (teamAAliveMembers.Count == 0 || teamBAliveMembers.Count == 0)
@@ -210,7 +214,7 @@ namespace Elemonsters.Services
             try
             {
                 // step 1 get creature taking turn
-                var me = _container.Creatures.Where(x => x.CreatureID == myTurn).FirstOrDefault();
+                var me = _creatures.Where(x => x.CreatureID == myTurn).FirstOrDefault();
 
                 // step 2, gain energy
                 var energyGained = await me.Gain(0, 1);
@@ -291,7 +295,7 @@ namespace Elemonsters.Services
         {
             try
             {
-                var me = _container.Creatures
+                var me = _creatures
                     .Where(x => x.CreatureID == myTurn)
                     .FirstOrDefault();
 
@@ -314,7 +318,7 @@ namespace Elemonsters.Services
             {
                 Ability selectedAbility = null;
 
-                var me = _container.Creatures
+                var me = _creatures
                     .Where(x => x.CreatureID == myTurn)
                     .FirstOrDefault();
 
@@ -407,7 +411,7 @@ namespace Elemonsters.Services
 
                 foreach (var target in targetList)
                 {
-                    var me = _container.Creatures
+                    var me = _creatures
                         .Where(x => x.CreatureID == target)
                         .FirstOrDefault();
 
@@ -428,7 +432,7 @@ namespace Elemonsters.Services
                             AttackType = AttackTypeEnum.Physical,
                             Damage = x.Damage,
                             Penetration = x.Penetration,
-                            Attacker = _container.Creatures
+                            Attacker = _creatures
                                 .Where(y => y.CreatureID == x.ActiveCreature)
                                 .FirstOrDefault(),
                         })
@@ -452,7 +456,7 @@ namespace Elemonsters.Services
                             AttackType = AttackTypeEnum.Magic,
                             Damage = x.Damage,
                             Penetration = x.Penetration,
-                            Attacker = _container.Creatures
+                            Attacker = _creatures
                                 .Where(y => y.CreatureID == x.ActiveCreature)
                                 .FirstOrDefault(),
                         })

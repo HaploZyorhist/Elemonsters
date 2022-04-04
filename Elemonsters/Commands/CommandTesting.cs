@@ -5,6 +5,7 @@ using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
+using Elemonsters.Models.Locker.Requests;
 using Elemonsters.Services.Interfaces;
 
 namespace Elemonsters.Commands
@@ -21,7 +22,6 @@ namespace Elemonsters.Commands
 
         public ActivityEnum _activity = ActivityEnum.Testing;
         private ILockoutService _locker;
-        private IInstanceTrackerService _instance;
         private IPartyService _partyService;
         private IBattleService _battleService;
         private DamageFactory _damageFactory;
@@ -31,13 +31,11 @@ namespace Elemonsters.Commands
         #region CTOR
 
         public CommandTesting(ILockoutService locker,
-                              IInstanceTrackerService instance,
                               IPartyService partyService,
                               IBattleService battleService,
                               DamageFactory damageFactory)
         {
             _locker = locker;
-            _instance = instance;
             _partyService = partyService;
             _battleService = battleService;
             _damageFactory = damageFactory;
@@ -54,18 +52,22 @@ namespace Elemonsters.Commands
             var context = Context;
             try
             {
-                var success = await _locker.UnlockUser(context.User);
-
-                if (!success)
+                var request = new UnlockUserRequest
                 {
-                    throw new Exception();
+                    User = context.User.Id
+                };
+                var unlockResult = await _locker.UnlockUser(request);
+
+                if (unlockResult.IsLocked)
+                {
+                    throw new Exception($"{Context.User.Mention} was not unlocked");
                 }
 
                 await ReplyAsync($"{context.User.Mention} was unlocked");
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"{nameof(CancelCommand)} has failed");
+                await ReplyAsync(ex.Message);
             }
         }
 
@@ -77,10 +79,16 @@ namespace Elemonsters.Commands
             var context = Context;
             try
             {
-                var userCheck = await _locker.CheckGeneralLock(context.User);
-                var instance = await _instance.GetInstance();
+                var request = new LockUserRequest
+                {
+                    User = context.User.Id,
+                    Activity = _activity,
+                    Instance = Guid.NewGuid()
+                };
 
-                if (userCheck == false)
+                var result = await _locker.LockUser(request);
+
+                if (!result.IsLocked)
                 {
                     sb.AppendLine($"Test 1: {context.User.Mention} was not locked");
                 }
@@ -89,56 +97,29 @@ namespace Elemonsters.Commands
                     sb.AppendLine($"Test 1: {context.User.Mention} was locked");
                 }
 
-                var userInstanceCheck = await _locker.CheckActivityLock(context.User, _activity, instance);
-
-                if (userInstanceCheck == false)
+                var compareRequest = new CompareLockRequest
                 {
-                    sb.AppendLine($"Test 2: {context.User.Mention} was not performing {_activity} for the instance {instance}");
+                    User = context.User.Id,
+                    Activity = _activity,
+                    Instance = request.Instance
+                };
+
+                var compareResult = await _locker.CompareLock(compareRequest);
+
+                if (!compareResult.LockMatch)
+                {
+                    sb.AppendLine($"Test 2: {context.User.Mention} was not performing {_activity} for the instance {compareRequest.Instance}");
                 }
                 else
                 {
-                    sb.AppendLine($"Test 2: {context.User.Mention} was performing {_activity} specified for instance {instance}");
-                }
-
-                var userLockCheck = await _locker.LockUser(context.User, _activity, instance);
-
-                if (userLockCheck == false)
-                {
-                    sb.AppendLine($"Test 3: Unable to lock {context.User.Mention} with the instance {instance} and activity {_activity}");
-                }
-                else
-                {
-                    sb.AppendLine($"Test 3: {context.User.Mention} was locked with the instance {instance} and activity {_activity}");
+                    sb.AppendLine($"Test 2: {context.User.Mention} was performing {_activity} specified for instance {compareRequest.Instance}");
                 }
 
                 await ReplyAsync(sb.ToString());
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"{nameof(LockingCommand)} has failed");
-            }
-        }
-
-        [Command("Increment")]
-        [Summary("This command is used for incrimenting the instance")]
-        public async Task IncrimentInstanceCommand()
-        {
-            var sb = new StringBuilder();
-            var instance = await _instance.GetInstance();
-
-            try
-            {
-                sb.AppendLine($"The current instance is {instance}");
-
-                await _instance.IncrimentInstance();
-
-                sb.AppendLine($"The new instance is {instance}");
-
-                await ReplyAsync(sb.ToString());
-            }
-            catch (Exception ex)
-            {
-                await ReplyAsync($"{nameof(IncrimentInstanceCommand)} has failed");
+                await ReplyAsync($"Locking test has failed");
             }
         }
 
@@ -146,18 +127,44 @@ namespace Elemonsters.Commands
         [Summary("This command is used for testing battle flow")]
         public async Task BattleTestCommand()
         {
+            var context = Context;
+
+            var instance = Guid.NewGuid();
+
             try
             {
-                var context = Context;
-
                 var players = new List<IUser>();
-
                 players.Add(context.User);
+
+                foreach (var player in players)
+                {
+                    var checkLockRequest = new CheckLockRequest
+                    {
+                        User = player.Id
+                    };
+
+                    var lockedCheckResult = await _locker.CheckLock(checkLockRequest);
+
+                    if (lockedCheckResult.IsLocked)
+                    {
+                        throw new Exception(
+                            $"{player.Mention} is currently locked in another activity. Starting battle failed.");
+                    }
+
+                    var lockPlayerRequest = new LockUserRequest
+                    {
+                        User = player.Id,
+                        Activity = ActivityEnum.Battle,
+                        Instance = instance
+                    };
+
+                    await _locker.LockUser(lockPlayerRequest);
+                }
 
                 var battleContainer = new BattleContainer
                 {
                     Players = players,
-                    Instance = await _instance.GetInstance(),
+                    Instance = instance,
                     Creatures = new List<CreatureBase>(),
                 };
 
@@ -165,7 +172,7 @@ namespace Elemonsters.Commands
             }
             catch (Exception ex)
             {
-
+                await ReplyAsync(ex.Message);
             }
         }
 

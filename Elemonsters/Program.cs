@@ -46,7 +46,6 @@ namespace Elemonsters
                 .AddTransient<IDBService, DBService>()
                 .AddTransient<IBattleService, BattleService>()
                 .AddTransient<ICreatureService, CreatureService>()
-                .AddSingleton<IInstanceTrackerService, InstanceTrackerService>()
                 .AddTransient<IPartyService, PartyService>()
                 .AddTransient<IAIService, AIService>()
                 .AddTransient<IChatService, ChatService>()

@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Elemonsters.Models.Enums;
+using Elemonsters.Models.Locker.Requests;
+using Elemonsters.Models.Locker.Results;
 
 namespace Elemonsters.Services.Interfaces
 {
@@ -8,29 +10,25 @@ namespace Elemonsters.Services.Interfaces
         /// <summary>
         /// checks if the user is currently performing an activity
         /// </summary>
-        /// <param name="user">discord user information</param>
-        Task<bool> CheckGeneralLock(IUser user);
+        /// <param name="request">object containing details on user being checked</param>
+        Task<CheckLockResult> CheckLock(CheckLockRequest request);
 
         /// <summary>
-        /// checks if the user is currently performing the activity given with the instance given
+        /// checks if the user is currently performing an activity
         /// </summary>
-        /// <param name="user">discord user information</param>
-        /// <param name="activity">activity from enum</param>
-        /// <param name="instance">instance of the activity being performed</param>
-        Task<bool> CheckActivityLock(IUser user, ActivityEnum activity, int instance);
+        /// <param name="request">object containing details on the lock to be checked</param>
+        Task<CompareLockResult> CompareLock(CompareLockRequest request);
 
         /// <summary>
         /// task for locking a user
         /// </summary>
-        /// <param name="user">discord user information</param>
-        /// <param name="activity">activity from enum</param>
-        /// <param name="instance">instance of the activity being performed</param>
-        Task<bool> LockUser(IUser user, ActivityEnum activity, int instance);
+        /// <param name="request">object containing details on how to lock the user</param>
+        Task<LockUserResult> LockUser(LockUserRequest request);
 
         /// <summary>
         /// task for unlocking a user
         /// </summary>
-        /// <param name="user">discord user information</param>
-        Task<bool> UnlockUser(IUser user);
+        /// <param name="request">object containing details on unlocking the user</param>
+        Task<UnlockUserResult> UnlockUser(UnlockUserRequest request);
     }
 }
