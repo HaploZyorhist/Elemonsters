@@ -16,7 +16,7 @@ namespace Elemonsters.Models.StatusEffects.Requests
         /// <summary>
         /// object containing all the data for the battle
         /// </summary>
-        public BattleContainer Container { get; set; } = new BattleContainer();
+        public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
 
         /// <summary>
         /// target of the status effect

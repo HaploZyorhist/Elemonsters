@@ -7,7 +7,11 @@ namespace Elemonsters.Models.Combat.Requests
     /// </summary>
     public class ActiveRequest
     {
-        public BattleContainer Container { get; set; } = new BattleContainer();
+        /// <summary>
+        /// list of creatures involved in the battle
+        /// </summary>
+        public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
+
         /// <summary>
         /// list of targets selected by the player
         /// </summary>

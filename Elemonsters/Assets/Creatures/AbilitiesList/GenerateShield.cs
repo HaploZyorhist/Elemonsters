@@ -32,7 +32,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
 
                 var statusEffectResults = new AddStatusEffectResult();
 
-                var me = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn)
+                var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn)
                     .FirstOrDefault();
 
                 var statuses = new List<BuffDebuff>();

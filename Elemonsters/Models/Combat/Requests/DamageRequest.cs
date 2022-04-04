@@ -1,4 +1,5 @@
-﻿   using Elemonsters.Models.Enums;
+﻿   using Elemonsters.Assets.Creatures;
+   using Elemonsters.Models.Enums;
 
 namespace Elemonsters.Models.Combat.Requests
 {
@@ -18,9 +19,9 @@ namespace Elemonsters.Models.Combat.Requests
         public TriggerConditionsEnum TriggerCondition { get; set; } = TriggerConditionsEnum.None;
 
         /// <summary>
-        /// object containing all of the details of the battle
+        /// list of creatures involved in the battle
         /// </summary>
-        public BattleContainer Container { get; set; } = new BattleContainer();
+        public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
 
         /// <summary>
         /// how much damage is being dealt

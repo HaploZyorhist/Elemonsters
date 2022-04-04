@@ -61,7 +61,7 @@ namespace Elemonsters.Assets.StatusEffects
 
         public virtual async Task ReduceDuration(ReduceDurationRequest request)
         {
-            throw new NotImplementedException();
+            Duration -= 1;
         }
     }
 }

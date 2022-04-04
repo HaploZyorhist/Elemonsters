@@ -17,13 +17,13 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
 
             foreach (var target in request.Targets)
             {
-                var targetCreature = request.Container.Creatures.Where(x => x.CreatureID == target).FirstOrDefault();
+                var targetCreature = request.Creatures.Where(x => x.CreatureID == target).FirstOrDefault();
 
                 var newPassive = new TestPassiveBuff
                 {
                     Name = "Blight",
                     IsBuff = true,
-                    Duration = 0,
+                    Duration = 1,
                     Stacks = 0,
                     Value = 0,
                     Level = request.Ability.AbilityLevel,

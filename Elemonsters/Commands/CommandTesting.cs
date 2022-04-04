@@ -166,6 +166,7 @@ namespace Elemonsters.Commands
                     Players = players,
                     Instance = instance,
                     Creatures = new List<CreatureBase>(),
+                    Context = context
                 };
 
                 await _battleService.BeginBattle(context, battleContainer);

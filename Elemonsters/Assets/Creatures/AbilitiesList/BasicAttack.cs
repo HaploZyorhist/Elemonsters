@@ -37,8 +37,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                 // only hits the selected target
                 foreach (var t in request.Targets)
                 {
-                    var target = request.Container.Creatures.Where(x => x.CreatureID == t).FirstOrDefault();
-                    var me = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
+                    var target = request.Creatures.Where(x => x.CreatureID == t).FirstOrDefault();
+                    var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
 
                     // create object containing data on damage to be dealt
                     var damageRequest = new DamageRequest
@@ -88,7 +88,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
 
                         var effectRequest = new ActivateStatusEffectRequest
                         {
-                            Container = request.Container,
+                            Creatures = request.Creatures,
                             MyTurn = request.MyTurn,
                             Targets = targets
                         };

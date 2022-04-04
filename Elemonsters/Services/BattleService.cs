@@ -1,4 +1,5 @@
-﻿using Elemonsters.Assets.Creatures;
+﻿using System.Security.Cryptography.X509Certificates;
+using Elemonsters.Assets.Creatures;
 using Elemonsters.Factories;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
@@ -93,7 +94,7 @@ namespace Elemonsters.Services
                         var targetingRequest = new GetTargetsRequest
                         {
                             Rules = targetRules,
-                            Container = _container,
+                            Creatures = _creatures,
                             Context = _context,
                             MyTurn = creature.CreatureID
                         };
@@ -105,7 +106,7 @@ namespace Elemonsters.Services
                             var seRequest = new AddStatusEffectRequest
                             {
                                 Ability = passive,
-                                Container = _container,
+                                Creatures = _creatures,
                                 Targets = targets
                             };
 
@@ -247,7 +248,7 @@ namespace Elemonsters.Services
                         var targetingRequest = new GetTargetsRequest
                         {
                             Rules = targetRules,
-                            Container = _container,
+                            Creatures = _creatures,
                             Context = _context,
                             MyTurn = myTurn
                         };
@@ -262,7 +263,7 @@ namespace Elemonsters.Services
                         AbilityName = selectedAbility.Name,
                         AbilityLevel = selectedAbility.AbilityLevel,
                         Targets = targets,
-                        Container = _container,
+                        Creatures = _creatures,
                     };
 
                     activeResults = await selectedAbility.Activation(activeRequest);
@@ -301,6 +302,8 @@ namespace Elemonsters.Services
 
                 me.Statuses
                     .ForEach(x => x.ReduceDuration(new ReduceDurationRequest()));
+
+                me.Statuses.RemoveAll(x => x.Duration < 1);
             }
             catch (Exception ex)
             {

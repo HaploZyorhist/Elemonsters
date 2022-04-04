@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Elemonsters.Assets.Creatures;
 
 namespace Elemonsters.Models.Combat.Requests
 {
@@ -12,9 +13,9 @@ namespace Elemonsters.Models.Combat.Requests
     public class ActivateStatusEffectRequest
     {
         /// <summary>
-        /// object containing all of the details of the battle
+        /// list of creatures involved in the battle
         /// </summary>
-        public BattleContainer Container { get; set; } = new BattleContainer();
+        public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
 
         /// <summary>
         /// creature id of the user

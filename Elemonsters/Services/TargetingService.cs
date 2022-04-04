@@ -61,16 +61,16 @@ namespace Elemonsters.Services
         {
             try
             {
-                var me = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
+                var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
 
-                List<CreatureBase> availableTargets = request.Container.Creatures
+                List<CreatureBase> availableTargets = request.Creatures
                     .Where(x => x.Position == PositionEnum.Melee &&
                                 x.User != me.User)
                     .ToList();
 
                 if (availableTargets.Count == 0)
                 {
-                    availableTargets.AddRange(request.Container.Creatures
+                    availableTargets.AddRange(request.Creatures
                         .Where(x => x.Position == PositionEnum.Ranged &&
                                     x.User != me.User)
                         .ToList());
@@ -78,7 +78,7 @@ namespace Elemonsters.Services
 
                 if (availableTargets.Count == 0)
                 {
-                    availableTargets.AddRange(request.Container.Creatures
+                    availableTargets.AddRange(request.Creatures
                         .Where(x => x.Position == PositionEnum.Auxillary &&
                                     x.User != me.User)
                         .ToList());

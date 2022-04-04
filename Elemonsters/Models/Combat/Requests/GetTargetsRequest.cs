@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Combat.Results;
 
 namespace Elemonsters.Models.Combat.Requests
@@ -19,9 +20,9 @@ namespace Elemonsters.Models.Combat.Requests
         public TargetRulesResult Rules { get; set; } = new TargetRulesResult();
 
         /// <summary>
-        /// object containing all of the details of the battle
+        /// list of creatures involved in the battle
         /// </summary>
-        public BattleContainer Container { get; set; } = new BattleContainer();
+        public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
 
         /// <summary>
         /// command context for passing to chat service

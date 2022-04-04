@@ -19,7 +19,7 @@ namespace Elemonsters.Assets.StatusEffects
         {
             Name = "Blight";
             IsBuff = true;
-            Duration = 0;
+            Duration = 1;
             Stacks = 0;
             Value = 0;
             Level = 0;
@@ -35,7 +35,7 @@ namespace Elemonsters.Assets.StatusEffects
                 // create new result object
                 var result = new PassiveResult();
 
-                var me = request.Container.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
+                var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
 
                 foreach (var target in request.Targets)
                 {
