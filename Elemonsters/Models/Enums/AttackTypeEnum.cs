@@ -4,7 +4,7 @@
     {
         None,
         Physical,
-        Magic,
+        Elemental,
         True
     }
 }

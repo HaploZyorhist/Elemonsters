@@ -1,19 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Elemonsters.Assets.Abilities;
+﻿using Elemonsters.Assets.Abilities;
 using Elemonsters.Assets.Creatures.AbilitiesList;
+using Elemonsters.Assets.Creatures.CreaturesList.Slimes.AbilitiesList;
 using Elemonsters.Models.Enums;
 
-namespace Elemonsters.Assets.Creatures.CreaturesList
+namespace Elemonsters.Assets.Creatures.CreaturesList.Slimes.GreenSlime
 {
-    public class TestyBoi : CreatureBase
+    public class GreenSlime : CreatureBase
     {
-        public TestyBoi()
+        public GreenSlime()
         {
-            Name = "Testy";
+            Name = "Green Slime";
+            Species = "Slime";
             IsLeader = false;
             CreatureID = 0;
             User = 0;
@@ -23,21 +20,21 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             Position = PositionEnum.Melee;
             Stats = new CreatureStats
             {
-                Strength = 100,
-                Defense = 100,
+                Strength = 50,
+                Defense = 200,
                 Lethality = 10,
-                Spirit = 100,
-                Aura = 100,
+                Spirit = 200,
+                Aura = 150,
                 Sorcery = 10,
-                CritChance = 100,
+                CritChance = 10,
                 CritModifier = 150,
-                Dodge = 100,
+                Dodge = 20,
                 Tenacity = 100,
-                MaxHealth = 1000,
+                MaxHealth = 1500,
                 Health = 1000,
                 MaxEnergy = 100,
                 Energy = 100,
-                Regeneration = 100,
+                Regeneration = 10,
                 Speed = 10,
             };
             Elements = new CreatureElements
@@ -49,27 +46,29 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
             };
 
             Abilities.Add
+            (
+                new AcidHeal
+                {
+                    AbilitySlot = AbilitySlotEnum.Passive,
+                }
+            );
+
+            Abilities.Add
             (new BasicAttack
             {
                 AbilitySlot = AbilitySlotEnum.BasicAttack,
-                IsActive = true,
-                Name = "Basic Attack",
             });
 
             Abilities.Add
             (new Blight
             {
                 AbilitySlot = AbilitySlotEnum.FirstAbility,
-                IsActive = false,
-                Name = "Blight",
             });
 
             Abilities.Add
             (new GenerateShield
             {
                 AbilitySlot = AbilitySlotEnum.SecondAbility,
-                IsActive = true,
-                Name = "Total Defense",
                 Cost = 25,
             });
         }

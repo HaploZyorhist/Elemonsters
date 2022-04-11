@@ -16,6 +16,11 @@ namespace Elemonsters.Assets.Creatures
         public string Name { get; set; }
 
         /// <summary>
+        /// the species the creature belongs to
+        /// </summary>
+        public string Species { get; set; }
+
+        /// <summary>
         /// bool indicating if the creature is the leader of the party
         /// </summary>
         public bool IsLeader { get; set; }

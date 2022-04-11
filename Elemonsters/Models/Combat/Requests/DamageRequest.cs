@@ -19,11 +19,6 @@ namespace Elemonsters.Models.Combat.Requests
         public TriggerConditionsEnum TriggerCondition { get; set; } = TriggerConditionsEnum.None;
 
         /// <summary>
-        /// list of creatures involved in the battle
-        /// </summary>
-        public List<CreatureBase> Creatures { get; set; } = new List<CreatureBase>();
-
-        /// <summary>
         /// how much damage is being dealt
         /// </summary>
         public int Damage { get; set; }

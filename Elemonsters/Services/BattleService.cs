@@ -21,9 +21,10 @@ namespace Elemonsters.Services
     public class BattleService : IBattleService
     {
         private readonly IPartyService _partyService;
-        private readonly DamageFactory _damageFactory;
         private readonly IChatService _chatService;
         private readonly ITargetingService _targetingService;
+        private readonly IDamageService _damageService;
+        private readonly ICreatureService _creatureService;
 
         public ICommandContext _context;
         public List<CreatureBase> _creatures;
@@ -35,14 +36,16 @@ namespace Elemonsters.Services
         /// base constructor for battle service
         /// </summary>
         public BattleService(IPartyService partyService,
-                             DamageFactory damageFactory,
                              IChatService chatService,
-                             ITargetingService targetingService)
+                             ITargetingService targetingService,
+                             IDamageService damageService,
+                             ICreatureService creatureService)
         {
             _partyService = partyService;
-            _damageFactory = damageFactory;
             _chatService = chatService;
             _targetingService = targetingService;
+            _damageService = damageService;
+            _creatureService = creatureService;
         }
 
         /// <inheritdoc />
@@ -78,7 +81,15 @@ namespace Elemonsters.Services
                 await _context.Channel.SendMessageAsync(_messages.ToString());
                 _messages.Clear();
 
-                await AssignPassives();
+                var assignPassivesRequest = new AssignPassivesRequest
+                {
+                    Creatures = _creatures,
+                    Context = _context
+                };
+
+                var passivesReturn = await _creatureService.AssignPassives(assignPassivesRequest);
+
+                _messages.Append(passivesReturn.Messages);
 
                 // loop while both players have at least 1 alive team member
                 var winner = await StartBattleLoop();
@@ -223,7 +234,6 @@ namespace Elemonsters.Services
                     {
                         MyTurn = myTurn,
                         AbilityName = selectedAbility.Name,
-                        AbilityLevel = selectedAbility.AbilityLevel,
                         Targets = targets,
                         Creatures = _creatures,
                     };
@@ -234,7 +244,9 @@ namespace Elemonsters.Services
                 // step 7 do all damage requests
                 var damageRequests = activeResults.DamageRequests;
 
-                await HandleDamage(damageRequests);
+                var damageReturn = await _damageService.HandleDamage(damageRequests, _creatures);
+
+                _messages.Append(damageReturn.Messages);
 
                 _messages.Append(activeResults.SB.ToString());
                 _messages.Append(activeResults.StatusEffectResults.SB);
@@ -247,56 +259,6 @@ namespace Elemonsters.Services
             }
             catch (Exception ex)
             {
-            }
-        }
-
-        public async Task AssignPassives()
-        {
-            //TODO continue to refactor and clean this up
-            try
-            {
-                foreach (var creature in _creatures)
-                {
-                    var passives = creature.Abilities
-                        .Where(x => x.PassiveAbilities.Count > 0)
-                        .ToList();
-
-                    foreach (var passive in passives)
-                    {
-                        var allPassives = passive.PassiveAbilities.ToList();
-
-                        var targetRules = await passive.GetTargetOptions();
-
-                        var targetingRequest = new GetTargetsRequest
-                        {
-                            Rules = targetRules,
-                            Creatures = _creatures,
-                            Context = _context,
-                            MyTurn = creature.CreatureID
-                        };
-
-                        var targets = await _targetingService.GetTargets(targetingRequest);
-
-                        foreach (var p in allPassives)
-                        {
-                            var seRequest = new AddStatusEffectRequest
-                            {
-                                Ability = passive,
-                                Creatures = _creatures,
-                                Targets = targets
-                            };
-
-                            var activations = await p.AddStatusEffect(seRequest);
-
-                            _messages.Append(activations.SB.ToString());
-                        }
-                    }
-
-                }
-            }
-            catch (Exception ex)
-            {
-                
             }
         }
 
@@ -351,8 +313,7 @@ namespace Elemonsters.Services
                     while (selectedAbility == null)
                     {
                         var abilityOptions = me.Abilities
-                            .Where(x => x.IsActive &&
-                                        x.IsLearned)
+                            .Where(x => x.IsActive)
                             .ToList();
 
                         _messages.AppendLine(
@@ -406,264 +367,6 @@ namespace Elemonsters.Services
             catch (Exception ex)
             {
                 return null;
-            }
-        }
-
-        /// <summary>
-        /// method for dealing damage to targets
-        /// </summary>
-        /// <param name="damageRequests">request object dictating how to deal damage to target</param>
-        public async Task HandleDamage(List<DamageRequest> damageRequests)
-        {
-            try
-            {
-                var targetList = damageRequests
-                    .Select(x => x.Target)
-                    .Distinct()
-                    .ToList();
-
-                foreach (var target in targetList)
-                {
-                    var me = _creatures
-                        .Where(x => x.CreatureID == target)
-                        .FirstOrDefault();
-
-                    var requests = damageRequests
-                        .Where(x => x.Target == target)
-                        .ToList();
-                    int totalDamage = 0;
-
-                    var physicalReqeusts = requests
-                        .Where(x => x.Target == target &&
-                                    x.AttackType == AttackTypeEnum.Physical)
-                        .ToList();
-
-                    var physicalDamageRequests = physicalReqeusts
-                        .Select(x => new DamageFactoryRequest()
-                        {
-                            Target = me,
-                            AttackType = AttackTypeEnum.Physical,
-                            Damage = x.Damage,
-                            Penetration = x.Penetration,
-                            Attacker = _creatures
-                                .Where(y => y.CreatureID == x.ActiveCreature)
-                                .FirstOrDefault(),
-                        })
-                        .ToList();
-
-                    int physicalDamage = physicalDamageRequests
-                        .Sum(x => _damageFactory
-                            .CalculateDamage(x)
-                            .GetAwaiter()
-                            .GetResult());
-
-                    var elementalRequests = requests
-                        .Where(x => x.Target == target &&
-                                    x.AttackType == AttackTypeEnum.Magic)
-                        .ToList();
-
-                    var elementalDamageRequests = elementalRequests
-                        .Select(x => new DamageFactoryRequest()
-                        {
-                            Target = me,
-                            AttackType = AttackTypeEnum.Magic,
-                            Damage = x.Damage,
-                            Penetration = x.Penetration,
-                            Attacker = _creatures
-                                .Where(y => y.CreatureID == x.ActiveCreature)
-                                .FirstOrDefault(),
-                        })
-                        .ToList();
-
-                    int elementalDamage = elementalDamageRequests
-                        .Sum(x => _damageFactory
-                            .CalculateDamage(x)
-                            .GetAwaiter()
-                            .GetResult());
-
-                    var trueRequests = requests
-                        .Where(x => x.Target == target &&
-                                    x.AttackType == AttackTypeEnum.True)
-                        .ToList();
-
-                    var trueDamageRequests = trueRequests
-                        .Select(x => new DamageFactoryRequest
-                        {
-                            Target = me,
-                            AttackType = AttackTypeEnum.True,
-                            Damage = x.Damage,
-                            Penetration = x.Penetration
-                        });
-
-                    var trueDamage = trueDamageRequests
-                        .Sum(x => _damageFactory
-                            .CalculateDamage(x)
-                            .GetAwaiter()
-                            .GetResult());
-
-                    totalDamage = physicalDamage + elementalDamage + trueDamage;
-
-                    var elementalShields = me.Statuses
-                        .Where(x =>
-                            x.EffectType == EffectTypesEnum.ElementalShield)
-                        .OrderBy(x => x.Duration)
-                        .ToList();
-
-                    if (elementalShields != null && elementalShields.Count > 0)
-                    {
-                        var totalElementalShield = elementalShields
-                            .Select(x => x.Value)
-                            .Sum();
-
-                        _messages
-                            .AppendLine($"<@{me.User}>'s {me.Name} currently has {totalElementalShield} Elemental Shield");
-                    }
-
-                    var physicalShields = me.Statuses
-                        .Where(x =>
-                            x.EffectType == EffectTypesEnum.PhysicalShield)
-                        .OrderBy(x => x.Duration)
-                        .ToList();
-
-                    if (physicalShields != null && physicalShields.Count > 0)
-                    {
-                        var totalPhysicalShield = physicalShields
-                            .Select(x => x.Value)
-                            .Sum();
-
-                        _messages
-                            .AppendLine($"<@{me.User}>'s {me.Name} currently has {totalPhysicalShield} Physical Shield");
-                    }
-
-                    var generalShields = me.Statuses
-                        .Where(x =>
-                            x.EffectType == EffectTypesEnum.GeneralShield)
-                        .OrderBy(x => x.Duration)
-                        .ToList();
-
-                    if (generalShields != null && generalShields.Count > 0)
-                    {
-                        var totalGeneralShield = generalShields
-                            .Select(x => x.Value)
-                            .Sum();
-
-                        _messages
-                            .AppendLine($"<@{me.User}>'s {me.Name} currently has {totalGeneralShield} General Shield");
-                    }
-
-                    int remainingDamage = 0;
-
-                    int remainingElementalDamage = elementalDamage;
-                    int remainingPhysicalDamage = physicalDamage;
-
-                    while (elementalShields != null &&
-                           elementalShields.Count > 0 &&
-                           remainingElementalDamage > 0)
-                    {
-                        var currentShield = elementalShields.First();
-
-                        if (currentShield.Value > remainingElementalDamage)
-                        {
-                            currentShield.Value -= remainingElementalDamage;
-                            remainingElementalDamage = 0;
-                        }
-                        else
-                        {
-                            remainingElementalDamage -= currentShield.Value;
-                            elementalShields.Remove(currentShield);
-                        }
-                    }
-
-                    remainingDamage = remainingElementalDamage;
-
-                    while (physicalShields != null &&
-                           physicalShields.Count > 0 &&
-                           remainingPhysicalDamage > 0)
-                    {
-                        var currentShield = physicalShields.First();
-
-                        if (currentShield.Value > remainingPhysicalDamage)
-                        {
-                            currentShield.Value -= remainingPhysicalDamage;
-                            remainingPhysicalDamage = 0;
-                        }
-                        else
-                        {
-                            remainingPhysicalDamage -= currentShield.Value;
-                            physicalShields.Remove(currentShield);
-                        }
-                    }
-
-                    remainingDamage += remainingPhysicalDamage + trueDamage;
-
-                    while (generalShields != null &&
-                           generalShields.Count > 0 &&
-                           remainingDamage > 0)
-                    {
-                        var currentShield = generalShields.First();
-
-                        if (currentShield.Value > remainingDamage)
-                        {
-                            currentShield.Value -= remainingDamage;
-                            remainingDamage = 0;
-                        }
-                        else
-                        {
-                            remainingDamage -= currentShield.Value;
-                            generalShields.Remove(currentShield);
-                        }
-                    }
-
-                    if (remainingDamage > 0)
-                    {
-                        me.Stats.Health -= remainingDamage;
-                    }
-
-                    if (me.Stats.Health < 0)
-                    {
-                        me.Stats.Health = 0;
-                    }
-
-                    if (elementalDamage != remainingElementalDamage)
-                    {
-                        _messages.AppendLine(
-                            $"<@{me.User}>'s {me.Name}'s Elemental Shield has blocked {elementalDamage - remainingElementalDamage} damage");
-                    }
-
-                    if (physicalDamage != remainingPhysicalDamage)
-                    {
-                        _messages.AppendLine(
-                            $"<@{me.User}>'s {me.Name}'s Physical Shield has blocked {physicalDamage - remainingPhysicalDamage} damage");
-                    }
-
-                    if (totalDamage != remainingDamage)
-                    {
-                        _messages.AppendLine(
-                            $"<@{me.User}>'s {me.Name}'s Elemental Shield has blocked {totalDamage - remainingDamage} damage");
-                    }
-
-                    _messages.
-                        AppendLine($"<@{me.User}>'s {me.Name} took {totalDamage} total damage, {totalDamage - remainingDamage} was blocked by shields.  " +
-                                   $"{remainingDamage} was dealt to their health");
-
-                    _messages
-                        .AppendLine($"{remainingElementalDamage} was Elemental Damage, {remainingPhysicalDamage} was Physical Damage, {trueDamage} was True Damage");
-
-                    if (me.Stats.Health == 0)
-                    {
-                        _messages.AppendLine($"<@{me.User}>'s {me.Name} has died");
-                    }
-
-                    _messages.AppendLine(
-                        $"<@{me.User}>'s {me.Name} has {me.Stats.Health} remaining health");
-
-                    me.Statuses.RemoveAll(x => (x.EffectType == EffectTypesEnum.ElementalShield ||
-                                                x.EffectType == EffectTypesEnum.PhysicalShield ||
-                                                x.EffectType == EffectTypesEnum.GeneralShield) && x.Value <= 0);
-                }
-            }
-            catch (Exception ex)
-            {
             }
         }
     }

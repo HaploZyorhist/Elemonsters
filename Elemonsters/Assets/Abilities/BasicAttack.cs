@@ -1,8 +1,9 @@
-﻿using Elemonsters.Models.Combat.Requests;
+﻿using Elemonsters.Assets.Creatures;
+using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
 
-namespace Elemonsters.Assets.Creatures.AbilitiesList
+namespace Elemonsters.Assets.Abilities
 {
     /// <summary>
     /// object containing details on a basic attack
@@ -15,7 +16,6 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
         public BasicAttack()
         {
             Name = "Basic Attack";
-            AbilityLevel = 1;
             IsActive = true;
             AbilitySlot = AbilitySlotEnum.BasicAttack;
         }
@@ -68,7 +68,7 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                         return results;
                     }
 
-                    r = rand.Next(90, 100);
+                    r = rand.Next(0, 100);
 
                     if (r < me.Stats.CritChance)
                     {

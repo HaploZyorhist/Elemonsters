@@ -1,4 +1,5 @@
-﻿using Elemonsters.Assets.StatusEffects;
+﻿using Elemonsters.Assets.Passives;
+using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Enums;
 using Elemonsters.Models.StatusEffects.Requests;
 using Elemonsters.Models.StatusEffects.Results;
@@ -26,7 +27,7 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
                     Duration = 1,
                     Stacks = 0,
                     Value = 0,
-                    Level = request.Ability.AbilityLevel,
+                    Level = request.Level,
                     TriggerConditions = TriggerConditionsEnum.OnHit,
                     Stat = StatEffectedEnum.None
                 };

@@ -1,33 +1,22 @@
-﻿using Elemonsters.Assets.Creatures;
+﻿using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
-using Elemonsters.Models.StatusEffects.Requests;
-using Elemonsters.Models.StatusEffects.Results;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
-namespace Elemonsters.Assets.StatusEffects
+namespace Elemonsters.Assets.Creatures.CreaturesList.Slimes.StatusEffects
 {
-    /// <summary>
-    /// object for testing out passive effects
-    /// </summary>
-    internal class TestPassiveBuff : BuffDebuff
+    public class Acid : BuffDebuff
     {
-        /// <summary>
-        /// ctor for building a test passive
-        /// </summary>
-        public TestPassiveBuff()
+        public Acid()
         {
-            Name = "Blight";
-            IsBuff = true;
-            Duration = 1;
-            Stacks = 0;
-            Value = 0;
-            Level = 0;
-            TriggerConditions = TriggerConditionsEnum.OnHit;
-            Stat = StatEffectedEnum.None;
+            Name = "Acid";
+            IsBuff = false;
+            Duration = 3;
+            Stacks = 1;
+            TriggerConditions = TriggerConditionsEnum.TurnEnd;
         }
 
-        /// <inheritdoc />
         public override async Task<StatusEffectResult> ActivateEffect(ActivateStatusEffectRequest request)
         {
             try
@@ -35,7 +24,12 @@ namespace Elemonsters.Assets.StatusEffects
                 // create new result object
                 var result = new StatusEffectResult();
 
-                var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
+                var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn)
+                    .FirstOrDefault();
+
+                var activatingSlime = request.Creatures.Where(x => x.User == me.User && x.Species == "Slime")
+                    .OrderBy(x => x.GetCurrentAura())
+                    .FirstOrDefault();
 
                 foreach (var target in request.Targets)
                 {
@@ -51,16 +45,16 @@ namespace Elemonsters.Assets.StatusEffects
                     damageRequest.AttackType = AttackTypeEnum.Elemental;
 
                     // how much penetration is in the attack
-                    damageRequest.Penetration = await me.GetCurrentSorcery();
+                    damageRequest.Penetration = await activatingSlime.GetCurrentSorcery();
 
                     // how much the damage stat is modified by
                     double damageModifier = .35 + (Level * .05);
 
                     // calculate damage delt
-                    var damageDealt = await me.GetCurrentAura() * damageModifier;
+                    var damageDealt = await activatingSlime.GetCurrentAura() * damageModifier;
 
                     // pass it to damage request
-                    damageRequest.Damage = (int) damageDealt;
+                    damageRequest.Damage = (int)damageDealt;
 
                     // add the damage request to the return object
                     result.DamageRequests.Add(damageRequest);
@@ -72,12 +66,6 @@ namespace Elemonsters.Assets.StatusEffects
             {
                 return null;
             }
-        }
-
-        /// <inheritdoc />
-        public override async Task<CreatureBase> ReduceDuration(ReduceDurationRequest request)
-        {
-            return null;
         }
     }
 }

@@ -17,7 +17,6 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
         public GenerateShield()
         {
             Name = "Total Defense";
-            AbilityLevel = 0;
             IsActive = true;
             AbilitySlot = AbilitySlotEnum.FirstAbility;
         }
@@ -43,8 +42,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     IsBuff = true,
                     Duration = 3,
                     Stacks = 1,
-                    Level = AbilityLevel,
-                    Value = 200 + 150 * AbilityLevel,
+                    Level = (int)me.Rank,
+                    Value = 200 + 150 * (int)me.Rank,
                     EffectType = EffectTypesEnum.GeneralShield,
                 };
 
@@ -56,8 +55,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     IsBuff = true,
                     Duration = 3,
                     Stacks = 1,
-                    Level = AbilityLevel,
-                    Value = 100 + 200 * AbilityLevel,
+                    Level = (int)me.Rank,
+                    Value = 100 + 200 * (int)me.Rank,
                     EffectType = EffectTypesEnum.PhysicalShield,
                 };
 
@@ -69,8 +68,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     IsBuff = true,
                     Duration = 3,
                     Stacks = 1,
-                    Level = AbilityLevel,
-                    Value = 300 + 50 * AbilityLevel,
+                    Level = (int)me.Rank,
+                    Value = 300 + 50 * (int)me.Rank,
                     EffectType = EffectTypesEnum.ElementalShield,
                 };
 

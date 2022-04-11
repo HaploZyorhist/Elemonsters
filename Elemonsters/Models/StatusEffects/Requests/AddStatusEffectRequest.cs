@@ -22,5 +22,10 @@ namespace Elemonsters.Models.StatusEffects.Requests
         /// target of the status effect
         /// </summary>
         public List<ulong> Targets { get; set; }
+
+        /// <summary>
+        /// indicator of passive level
+        /// </summary>
+        public int Level { get; set; }
     }
 }

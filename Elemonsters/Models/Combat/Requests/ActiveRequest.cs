@@ -26,10 +26,5 @@ namespace Elemonsters.Models.Combat.Requests
         /// name of the ability being activated
         /// </summary>
         public string AbilityName { get; set; } = "";
-
-        /// <summary>
-        /// level of the ability being activated
-        /// </summary>
-        public int AbilityLevel { get; set; } = 0;
     }
 }

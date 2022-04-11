@@ -1,7 +1,7 @@
 ﻿using Elemonsters.Models.StatusEffects.Requests;
 using Elemonsters.Models.StatusEffects.Results;
 
-namespace Elemonsters.Assets.Creatures.PassiveAbilities
+namespace Elemonsters.Assets.Passives
 {
     /// <summary>
     /// Ability subclass for passive effects

@@ -54,7 +54,7 @@ namespace Elemonsters.Assets.StatusEffects
         /// </summary>
         public StatEffectedEnum Stat { get; set; } = StatEffectedEnum.None;
 
-        public virtual async Task<PassiveResult> ActivateEffect(ActivateStatusEffectRequest request)
+        public virtual async Task<StatusEffectResult> ActivateEffect(ActivateStatusEffectRequest request)
         {
             throw new NotImplementedException();
         }

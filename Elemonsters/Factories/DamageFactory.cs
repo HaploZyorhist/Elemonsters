@@ -102,7 +102,7 @@ namespace Elemonsters.Factories
                             return .8;
                         };
 
-                    case AttackTypeEnum.Magic:
+                    case AttackTypeEnum.Elemental:
                         if (attacker.Elements.RangedElement == target.Elements.RangedElement)
                         {
                             return 1;

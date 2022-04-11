@@ -1,4 +1,5 @@
 ﻿using Elemonsters.Assets.Creatures.PassiveAbilities;
+using Elemonsters.Assets.Passives;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
@@ -16,11 +17,6 @@ namespace Elemonsters.Assets.Creatures
         public string Name { get; set; } = "";
 
         /// <summary>
-        /// the ability level
-        /// </summary>
-        public int AbilityLevel { get; set; } = 0;
-
-        /// <summary>
         /// indicates if the ability has an active effect
         /// </summary>
         public bool IsActive { get; set; } = false;
@@ -29,11 +25,6 @@ namespace Elemonsters.Assets.Creatures
         /// what slot the ability is in
         /// </summary>
         public AbilitySlotEnum AbilitySlot { get; set; }
-
-        /// <summary>
-        /// indicates whether the ability has been learned yet
-        /// </summary>
-        public bool IsLearned { get; set; } = false;
 
         /// <summary>
         /// the cost to activate the ability

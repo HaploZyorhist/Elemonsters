@@ -28,14 +28,6 @@ namespace Elemonsters.Services
         {
             try
             {
-                // temp ai
-                if (request.MyTurn == 0)
-                {
-                    var myTurn = new List<ulong>();
-                    myTurn.Add(request.MyTurn);
-                    return myTurn;
-                }
-
                 switch (request.Rules.Rule)
                 {
                     case TargetingRulesEnum.Standard:
@@ -61,6 +53,15 @@ namespace Elemonsters.Services
         {
             try
             {
+                // temp ai
+                if (request.MyTurn == 0)
+                {
+                    var targets = new List<ulong>();
+                    var aiTargets = request.Creatures.Where(x => x.CreatureID != request.MyTurn).Select(x => x.CreatureID).ToList();
+                    targets.AddRange(aiTargets);
+                    return targets;
+                }
+
                 var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
 
                 List<CreatureBase> availableTargets = request.Creatures
@@ -132,6 +133,14 @@ namespace Elemonsters.Services
             try
             {
                 List<ulong> targets = new List<ulong>();
+
+                // temp ai
+                if (request.MyTurn == 0)
+                {
+                    var aiTargets = request.Creatures.Where(x => x.CreatureID == request.MyTurn).Select(x => x.CreatureID).ToList();
+                    targets.AddRange(aiTargets);
+                    return targets;
+                }
 
                 targets.Add(request.MyTurn);
 

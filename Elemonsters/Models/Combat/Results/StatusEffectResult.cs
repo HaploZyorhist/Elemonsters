@@ -5,7 +5,7 @@ namespace Elemonsters.Models.Combat.Results
     /// <summary>
     /// results for a passive activation
     /// </summary>
-    public class PassiveResult
+    public class StatusEffectResult
     {
         /// <summary>
         /// list of damage requests coming from an active ability

@@ -9,7 +9,6 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
         public Blight()
         {
             Name = "Blight";
-            AbilityLevel = 0;
             IsActive = false;
             AbilitySlot = AbilitySlotEnum.SecondAbility;
 
