@@ -5,6 +5,7 @@
         None,
         Physical,
         Elemental,
-        True
+        True,
+        Heal
     }
 }

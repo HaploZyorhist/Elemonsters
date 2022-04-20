@@ -42,7 +42,6 @@ namespace Elemonsters.Assets.StatusEffects
                     // start new damage request to pass out to result
                     var damageRequest = new DamageRequest
                     {
-                        ActiveCreature = request.MyTurn,
                         Target = target,
                         TriggerCondition = TriggerConditionsEnum.None
                     };

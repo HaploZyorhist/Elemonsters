@@ -1,4 +1,4 @@
-﻿using Elemonsters.Assets.Creatures.PassiveAbilities;
+﻿using System.Text;
 using Elemonsters.Assets.Passives;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
@@ -41,7 +41,7 @@ namespace Elemonsters.Assets.Creatures
         /// </summary>
         /// <param name="request">request object containing data for activation</param>
         /// <returns>list of results to be processed and applied to creatures</returns>
-        public virtual async Task<ActiveResult> Activation(ActiveRequest request)
+        public virtual async Task<ActiveAbilityResult> Activation(ActiveRequest request)
         {
             throw new NotImplementedException();
         }

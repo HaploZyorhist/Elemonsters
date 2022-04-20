@@ -37,13 +37,6 @@ namespace Elemonsters.Assets.Creatures.CreaturesList.Slimes.GreenSlime
                 Regeneration = 10,
                 Speed = 10,
             };
-            Elements = new CreatureElements
-            {
-                PhysicalElement = PhysicalElementEnum.Fire,
-                PhysicalValue = 100,
-                RangedElement = MagicElementEnum.Wind,
-                RangedValue = 100,
-            };
 
             Abilities.Add
             (
@@ -54,7 +47,7 @@ namespace Elemonsters.Assets.Creatures.CreaturesList.Slimes.GreenSlime
             );
 
             Abilities.Add
-            (new BasicAttack
+            (new Acid()
             {
                 AbilitySlot = AbilitySlotEnum.BasicAttack,
             });

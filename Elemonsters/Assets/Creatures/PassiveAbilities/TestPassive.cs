@@ -20,6 +20,9 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
             {
                 var targetCreature = request.Creatures.Where(x => x.CreatureID == target).FirstOrDefault();
 
+                var activatingCreatures = new List<ulong>();
+                activatingCreatures.Add(target);
+
                 var newPassive = new TestPassiveBuff
                 {
                     Name = "Blight",
@@ -29,7 +32,8 @@ namespace Elemonsters.Assets.Creatures.PassiveAbilities
                     Value = 0,
                     Level = request.Level,
                     TriggerConditions = TriggerConditionsEnum.OnHit,
-                    Stat = StatEffectedEnum.None
+                    Stat = StatEffectedEnum.None,
+                    ActivatingCreatures = activatingCreatures
                 };
 
                 targetCreature.Statuses.Add(newPassive);

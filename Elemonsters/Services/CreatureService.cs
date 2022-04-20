@@ -14,7 +14,6 @@ namespace Elemonsters.Services
     {
         public IDBService _dbService;
         public StatFactory _statFactory;
-        public readonly DamageFactory _damageFactory;
         private readonly ITargetingService _targetingService;
 
         /// <summary>
@@ -22,12 +21,10 @@ namespace Elemonsters.Services
         /// </summary>
         public CreatureService(IDBService dbService,
                                StatFactory statFactory,
-                               DamageFactory damageFactory,
                                ITargetingService targetingService)
         {
             _dbService = dbService;
             _statFactory = statFactory;
-            _damageFactory = damageFactory;
             _targetingService = targetingService;
         }
 
@@ -42,10 +39,7 @@ namespace Elemonsters.Services
 
                 var updatedStats = await _statFactory.GenerateStats(creatureStats);
 
-                var creatureElements = await _dbService.GetCreatureElements(creatureRequest.CreatureID);
-
                 creature.Stats = updatedStats;
-                creature.Elements = creatureElements;
                 creature.CreatureID = creatureRequest.CreatureID;
 
                 return creature;

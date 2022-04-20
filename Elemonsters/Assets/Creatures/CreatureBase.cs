@@ -1,5 +1,7 @@
-﻿using Elemonsters.Models.Enums;
+﻿using System.Text;
+using Elemonsters.Models.Enums;
 using Elemonsters.Assets.StatusEffects;
+using Elemonsters.Models.Combat.Requests;
 
 namespace Elemonsters.Assets.Creatures
 {
@@ -63,7 +65,7 @@ namespace Elemonsters.Assets.Creatures
         /// <summary>
         /// the element types and values of the creature
         /// </summary>
-        public CreatureElements Elements { get; set; }
+        public Dictionary<ElementEnum, int> Elements { get; set; } = new Dictionary<ElementEnum, int>();
 
         /// <summary>
         /// The creature's abilities
@@ -121,6 +123,297 @@ namespace Elemonsters.Assets.Creatures
             catch (Exception ex)
             {
                 return 0;
+            }
+        }
+
+        #endregion
+
+        #region Combat Methods
+
+        /// <summary>
+        /// method for getting damage from an attack
+        /// </summary>
+        /// <param name="request">data on what damage to be processed</param>
+        /// <returns>the amount of damage that is dealt after reductions</returns>
+        private async Task<int> CalculateDamage(CalculateDamageRequest request)
+        {
+            try
+            {
+                // true damage doesn't care about defenses
+                if (request.AttackType == AttackTypeEnum.True)
+                {
+                    return request.Damage;
+                }
+
+                // setup a multiplier for damage modification from defenses
+                double multiplier;
+
+                // defense value to be used for calculating damage
+                int defense;
+
+                // get defense values for applicable attack types
+                if (request.AttackType == AttackTypeEnum.Physical)
+                {
+                    defense = Stats.Defense;
+                }
+                else
+                {
+                    defense = Stats.Aura;
+                }
+
+                // remove penetrated amount from defense
+                defense -= request.Penetration;
+
+                // if your defense gets super low we need to make sure your damage amplifies properly
+                if (defense >= 0)
+                {
+                    multiplier = 100 / (100 + (double)defense);
+                }
+                else
+                {
+                    multiplier = 2 - 100 / (100 - (double)defense);
+                }
+
+                // damage delt after resistances
+                var damage = multiplier * request.Damage;
+
+                // turning damage into an int
+                int damageRounded = (int)damage;
+
+                return damageRounded;
+            }
+            catch (Exception ex)
+            {
+                return -1;
+            }
+        }
+
+        /// <summary>
+        /// method for dealing damage to targets
+        /// </summary>
+        /// <param name="damageRequests">request object dictating how to deal damage to target</param>
+        public async Task<StringBuilder> HandleDamage(List<DamageRequest> damageRequests)
+        {
+            var messages = new StringBuilder();
+
+            try
+            {
+                int totalDamage = 0;
+
+                var physicalRequests = damageRequests
+                    .Where(x => x.AttackType == AttackTypeEnum.Physical)
+                    .ToList();
+
+                var physicalDamageRequests = physicalRequests
+                    .Select(x => new CalculateDamageRequest()
+                    {
+                        AttackType = AttackTypeEnum.Physical,
+                        Damage = x.Damage,
+                        Penetration = x.Penetration,
+                    })
+                    .ToList();
+
+                int physicalDamage = physicalDamageRequests
+                    .Sum(x => CalculateDamage(x)
+                        .GetAwaiter()
+                        .GetResult());
+
+                var elementalRequests = damageRequests
+                    .Where(x => x.AttackType == AttackTypeEnum.Elemental)
+                    .ToList();
+
+                var elementalDamageRequests = elementalRequests
+                    .Select(x => new CalculateDamageRequest()
+                    {
+                        AttackType = AttackTypeEnum.Elemental,
+                        Damage = x.Damage,
+                        Penetration = x.Penetration,
+                    })
+                    .ToList();
+
+                int elementalDamage = elementalDamageRequests
+                    .Sum(x => CalculateDamage(x)
+                        .GetAwaiter()
+                        .GetResult());
+
+                var trueRequests = damageRequests
+                    .Where(x => x.AttackType == AttackTypeEnum.True)
+                    .ToList();
+
+                var trueDamageRequests = trueRequests
+                    .Select(x => new CalculateDamageRequest
+                    {
+                        AttackType = AttackTypeEnum.True,
+                        Damage = x.Damage,
+                        Penetration = x.Penetration
+                    });
+
+                var trueDamage = trueDamageRequests
+                    .Sum(x => CalculateDamage(x)
+                        .GetAwaiter()
+                        .GetResult());
+
+                totalDamage = physicalDamage + elementalDamage + trueDamage;
+
+                var elementalShields = Statuses
+                    .Where(x =>
+                        x.EffectType == EffectTypesEnum.ElementalShield)
+                    .OrderBy(x => x.Duration)
+                    .ToList();
+
+                if (elementalShields != null && elementalShields.Count > 0)
+                {
+                    var totalElementalShield = elementalShields
+                        .Select(x => x.Value)
+                        .Sum();
+
+                    messages
+                        .AppendLine($"<@{User}>'s {Name} currently has {totalElementalShield} Elemental Shield");
+                }
+
+                var physicalShields = Statuses
+                    .Where(x =>
+                        x.EffectType == EffectTypesEnum.PhysicalShield)
+                    .OrderBy(x => x.Duration)
+                    .ToList();
+
+                if (physicalShields != null && physicalShields.Count > 0)
+                {
+                    var totalPhysicalShield = physicalShields
+                        .Select(x => x.Value)
+                        .Sum();
+
+                    messages
+                        .AppendLine($"<@{User}>'s {Name} currently has {totalPhysicalShield} Physical Shield");
+                }
+
+                var generalShields = Statuses
+                    .Where(x =>
+                        x.EffectType == EffectTypesEnum.GeneralShield)
+                    .OrderBy(x => x.Duration)
+                    .ToList();
+
+                if (generalShields != null && generalShields.Count > 0)
+                {
+                    var totalGeneralShield = generalShields
+                        .Select(x => x.Value)
+                        .Sum();
+
+                    messages
+                        .AppendLine($"<@{User}>'s {Name} currently has {totalGeneralShield} General Shield");
+                }
+
+                int remainingDamage = 0;
+
+                int remainingElementalDamage = elementalDamage;
+                int remainingPhysicalDamage = physicalDamage;
+
+                while (elementalShields != null &&
+                       elementalShields.Count > 0 &&
+                       remainingElementalDamage > 0)
+                {
+                    var currentShield = elementalShields.First();
+
+                    if (currentShield.Value > remainingElementalDamage)
+                    {
+                        currentShield.Value -= remainingElementalDamage;
+                        remainingElementalDamage = 0;
+                    }
+                    else
+                    {
+                        remainingElementalDamage -= currentShield.Value;
+                        elementalShields.Remove(currentShield);
+                    }
+                }
+
+                remainingDamage = remainingElementalDamage;
+
+                while (physicalShields != null &&
+                       physicalShields.Count > 0 &&
+                       remainingPhysicalDamage > 0)
+                {
+                    var currentShield = physicalShields.First();
+
+                    if (currentShield.Value > remainingPhysicalDamage)
+                    {
+                        currentShield.Value -= remainingPhysicalDamage;
+                        remainingPhysicalDamage = 0;
+                    }
+                    else
+                    {
+                        remainingPhysicalDamage -= currentShield.Value;
+                        physicalShields.Remove(currentShield);
+                    }
+                }
+
+                remainingDamage += remainingPhysicalDamage + trueDamage;
+
+                while (generalShields != null &&
+                       generalShields.Count > 0 &&
+                       remainingDamage > 0)
+                {
+                    var currentShield = generalShields.First();
+
+                    if (currentShield.Value > remainingDamage)
+                    {
+                        currentShield.Value -= remainingDamage;
+                        remainingDamage = 0;
+                    }
+                    else
+                    {
+                        remainingDamage -= currentShield.Value;
+                        generalShields.Remove(currentShield);
+                    }
+                }
+
+                if (remainingDamage > 0)
+                {
+                    Stats.Health -= remainingDamage;
+                }
+
+                if (elementalDamage != remainingElementalDamage)
+                {
+                    messages.AppendLine(
+                        $"<@{User}>'s {Name}'s Elemental Shield has blocked {elementalDamage - remainingElementalDamage} damage");
+                }
+
+                if (physicalDamage != remainingPhysicalDamage)
+                {
+                    messages.AppendLine(
+                        $"<@{User}>'s {Name}'s Physical Shield has blocked {physicalDamage - remainingPhysicalDamage} damage");
+                }
+
+                if (totalDamage != remainingDamage)
+                {
+                    messages.AppendLine(
+                        $"<@{User}>'s {Name}'s Elemental Shield has blocked {totalDamage - remainingDamage} damage");
+                }
+
+                messages.
+                    AppendLine($"<@{User}>'s {Name} took {totalDamage} total damage, {totalDamage - remainingDamage} was blocked by shields.  " +
+                               $"{remainingDamage} was dealt to their health");
+
+                messages
+                    .AppendLine($"{remainingElementalDamage} was Elemental Damage, {remainingPhysicalDamage} was Physical Damage, {trueDamage} was True Damage");
+
+                if (Stats.Health <= 0)
+                {
+                    Stats.Health = 0;
+                    messages.AppendLine($"<@{User}>'s {Name} has died");
+                }
+
+                messages.AppendLine(
+                    $"<@{User}>'s {Name} has {Stats.Health} remaining health");
+
+                Statuses.RemoveAll(x => (x.EffectType == EffectTypesEnum.ElementalShield ||
+                                            x.EffectType == EffectTypesEnum.PhysicalShield ||
+                                            x.EffectType == EffectTypesEnum.GeneralShield) && x.Value <= 0);
+
+                return messages;
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
 

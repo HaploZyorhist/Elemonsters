@@ -30,7 +30,7 @@ namespace Elemonsters.Services
             {
                 switch (request.Rules.Rule)
                 {
-                    case TargetingRulesEnum.Standard:
+                    case TargetingRulesEnum.FrontToBack:
                         return await GetStandardTargets(request);
 
                     case TargetingRulesEnum.Self:

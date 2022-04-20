@@ -50,6 +50,11 @@ namespace Elemonsters.Assets.StatusEffects
         public TriggerConditionsEnum TriggerConditions { get; set; } = TriggerConditionsEnum.None;
 
         /// <summary>
+        /// creatures who can activate the effect
+        /// </summary>
+        public List<ulong> ActivatingCreatures { get; set; } = new List<ulong>();
+
+        /// <summary>
         /// if the buff/debuff effects a stat, indicates what stat is effected
         /// </summary>
         public StatEffectedEnum Stat { get; set; } = StatEffectedEnum.None;

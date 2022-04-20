@@ -1,4 +1,5 @@
-﻿using Elemonsters.Assets.Creatures;
+﻿using System.Text;
+using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
@@ -21,7 +22,7 @@ namespace Elemonsters.Assets.Abilities
         }
 
         /// <inheritdoc />
-        public override async Task<ActiveResult> Activation(ActiveRequest request)
+        public override async Task<ActiveAbilityResult> Activation(ActiveRequest request)
         {
             try
             {
@@ -32,27 +33,27 @@ namespace Elemonsters.Assets.Abilities
                 }
 
                 // create result object
-                var results = new ActiveResult();
+                var results = new ActiveAbilityResult
+                {
+                    ActivatingCreature = request.MyTurn,
+                    Triggers = TriggerConditionsEnum.OnHit
+                };
+
+                var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
 
                 // only hits the selected target
                 foreach (var t in request.Targets)
                 {
                     var target = request.Creatures.Where(x => x.CreatureID == t).FirstOrDefault();
-                    var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn).FirstOrDefault();
 
                     // create object containing data on damage to be dealt
                     var damageRequest = new DamageRequest
                     {
-                        ActiveCreature = request.MyTurn,
                         Target = target.CreatureID,
-                        TriggerCondition = TriggerConditionsEnum.OnHit
+                        TriggerCondition = TriggerConditionsEnum.OnHit,
+                        AttackType = AttackTypeEnum.Physical,
+                        Penetration = target.Stats.Lethality
                     };
-
-                    // physical attack, uses physical attack stats
-                    damageRequest.AttackType = AttackTypeEnum.Physical;
-
-                    // how much defense is being penetrated
-                    damageRequest.Penetration = target.Stats.Lethality;
 
                     // damage isn't modified
                     double damageModifier = 1;
@@ -64,8 +65,8 @@ namespace Elemonsters.Assets.Abilities
                     // check for dodge first
                     if (r < target.Stats.Dodge)
                     {
-                        results.SB.AppendLine($"<@{me.User}>'s {me.Name}'s attack has missed");
-                        return results;
+                        results.Messages.AppendLine($"<@{me.User}>'s {me.Name}'s attack has missed");
+                        continue;
                     }
 
                     r = rand.Next(0, 100);
@@ -73,35 +74,14 @@ namespace Elemonsters.Assets.Abilities
                     if (r < me.Stats.CritChance)
                     {
                         damageModifier = 1.5;
-                        results.SB.AppendLine(
+                        results.Messages.AppendLine(
                             $"<@{me.User}>'s {me.Name} has landed a critical hit");
-                    }
-
-                    // add in on hit effects
-                    var onHits = me.Statuses.Where(x => x.TriggerConditions == TriggerConditionsEnum.OnHit).ToList();
-
-                    foreach (var effect in onHits)
-                    {
-                        var targets = new List<ulong>();
-
-                        targets.Add(target.CreatureID);
-
-                        var effectRequest = new ActivateStatusEffectRequest
-                        {
-                            Creatures = request.Creatures,
-                            MyTurn = request.MyTurn,
-                            Targets = targets
-                        };
-
-                        var activationResult = await effect.ActivateEffect(effectRequest);
-
-                        results.DamageRequests.AddRange(activationResult.DamageRequests);
                     }
 
                     // calculates damage after crit
                     var damageDouble = me.Stats.Strength * damageModifier;
 
-                    damageRequest.Damage = (int) damageDouble;
+                    damageRequest.Damage = (int)damageDouble;
 
                     // adds damage request to result object
                     results.DamageRequests.Add(damageRequest);
@@ -123,7 +103,7 @@ namespace Elemonsters.Assets.Abilities
                 // create result object
                 var result = new TargetRulesResult
                 {
-                    Rule = TargetingRulesEnum.Standard,
+                    Rule = TargetingRulesEnum.FrontToBack,
                     TotalTargets = 1,
                     UniqueTargets = true
                 };

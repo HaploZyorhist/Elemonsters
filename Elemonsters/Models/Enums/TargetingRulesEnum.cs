@@ -3,7 +3,7 @@
     public enum TargetingRulesEnum
     {
         NoTarget,
-        Standard,
+        FrontToBack,
         Aimed,
         StatusEffect,
         AllEnemies,

@@ -1,4 +1,5 @@
-﻿using Elemonsters.Assets.StatusEffects;
+﻿using System.Text;
+using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
 using Elemonsters.Models.Enums;
@@ -22,14 +23,12 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
         }
 
         /// <inheritdoc />
-        public override async Task<ActiveResult> Activation(ActiveRequest request)
+        public override async Task<ActiveAbilityResult> Activation(ActiveRequest request)
         {
             try
             {
                 // create return object
-                var result = new ActiveResult();
-
-                var statusEffectResults = new AddStatusEffectResult();
+                var result = new ActiveAbilityResult();
 
                 var me = request.Creatures.Where(x => x.CreatureID == request.MyTurn)
                     .FirstOrDefault();
@@ -47,6 +46,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     EffectType = EffectTypesEnum.GeneralShield,
                 };
 
+                result.Messages.AppendLine($"<@{me.User}>'s {me.Name} has gained {shield.Value} {shield.Name}");
+
                 statuses.Add(shield);
 
                 var physicalShield = new BuffDebuff
@@ -60,6 +61,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     EffectType = EffectTypesEnum.PhysicalShield,
                 };
 
+                result.Messages.AppendLine($"<@{me.User}>'s {me.Name} has gained {physicalShield.Value} {physicalShield.Name}");
+
                 statuses.Add(physicalShield);
 
                 var elementalShield = new BuffDebuff
@@ -72,6 +75,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
                     Value = 300 + 50 * (int)me.Rank,
                     EffectType = EffectTypesEnum.ElementalShield,
                 };
+
+                result.Messages.AppendLine($"<@{me.User}>'s {me.Name} has gained {elementalShield.Value} {elementalShield.Name}");
 
                 statuses.Add(elementalShield);
 
@@ -92,8 +97,8 @@ namespace Elemonsters.Assets.Creatures.AbilitiesList
             {
                 var result = new TargetRulesResult
                 {
-                    Rule = TargetingRulesEnum.NoTarget,
-                    TotalTargets = 0,
+                    Rule = TargetingRulesEnum.Self,
+                    TotalTargets = 1,
                     UniqueTargets = true,
                 };
 

@@ -50,10 +50,8 @@ namespace Elemonsters
                 .AddTransient<IAIService, AIService>()
                 .AddTransient<IChatService, ChatService>()
                 .AddTransient<ITargetingService, TargetingService>()
-                .AddTransient<IDamageService, DamageService>()
 
                 // factories
-                .AddSingleton<DamageFactory>()
                 .AddSingleton<StatFactory>()
 
                 // Database

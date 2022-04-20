@@ -29,11 +29,6 @@ namespace Elemonsters.Models.Combat.Requests
         public int Penetration { get; set; }
 
         /// <summary>
-        /// id of the creature taking the turn
-        /// </summary>
-        public ulong ActiveCreature { get; set; }
-
-        /// <summary>
         /// target that the damage is being dealt to
         /// </summary>
         public ulong Target { get; set; }

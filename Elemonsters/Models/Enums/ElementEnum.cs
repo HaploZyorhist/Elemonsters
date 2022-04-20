@@ -9,10 +9,11 @@ namespace Elemonsters.Models.Enums
     /// <summary>
     /// enum containing the elemental types of ranged attacks
     /// </summary>
-    public enum MagicElementEnum
+    public enum ElementEnum
     {
         Electric,
         Wind,
-        Earth
+        Fire,
+        Water
     }
 }

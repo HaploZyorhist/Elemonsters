@@ -6,9 +6,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Elemonsters.Assets.Creatures.CreaturesList.Slimes.StatusEffects
 {
-    public class Acid : BuffDebuff
+    public class AcidDebuff : BuffDebuff
     {
-        public Acid()
+        public AcidDebuff()
         {
             Name = "Acid";
             IsBuff = false;
@@ -36,7 +36,6 @@ namespace Elemonsters.Assets.Creatures.CreaturesList.Slimes.StatusEffects
                     // start new damage request to pass out to result
                     var damageRequest = new DamageRequest
                     {
-                        ActiveCreature = request.MyTurn,
                         Target = target,
                         TriggerCondition = TriggerConditionsEnum.None
                     };

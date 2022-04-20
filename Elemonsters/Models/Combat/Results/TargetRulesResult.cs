@@ -8,7 +8,7 @@ namespace Elemonsters.Models.Combat.Results
     /// </summary>
     public class TargetRulesResult
     {
-        public TargetingRulesEnum Rule { get; set; } = TargetingRulesEnum.Standard;
+        public TargetingRulesEnum Rule { get; set; } = TargetingRulesEnum.FrontToBack;
         public BuffDebuff Filter { get; set; } = null;
         public int TotalTargets { get; set; } = 1;
         public bool UniqueTargets { get; set; } = true;

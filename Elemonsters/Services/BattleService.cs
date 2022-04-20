@@ -1,17 +1,14 @@
-﻿using System.Security.Cryptography.X509Certificates;
-using Elemonsters.Assets.Creatures;
-using Elemonsters.Factories;
+﻿using Elemonsters.Assets.Creatures;
 using Elemonsters.Models.Combat;
 using Elemonsters.Models.Enums;
 using Elemonsters.Services.Interfaces;
 using System.Text;
 using Discord;
 using Discord.Commands;
+using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Chat;
 using Elemonsters.Models.Combat.Requests;
 using Elemonsters.Models.Combat.Results;
-using Elemonsters.Models.Factory.Requests;
-using Elemonsters.Models.StatusEffects.Requests;
 
 namespace Elemonsters.Services
 {
@@ -23,7 +20,6 @@ namespace Elemonsters.Services
         private readonly IPartyService _partyService;
         private readonly IChatService _chatService;
         private readonly ITargetingService _targetingService;
-        private readonly IDamageService _damageService;
         private readonly ICreatureService _creatureService;
 
         public ICommandContext _context;
@@ -38,13 +34,11 @@ namespace Elemonsters.Services
         public BattleService(IPartyService partyService,
                              IChatService chatService,
                              ITargetingService targetingService,
-                             IDamageService damageService,
                              ICreatureService creatureService)
         {
             _partyService = partyService;
             _chatService = chatService;
             _targetingService = targetingService;
-            _damageService = damageService;
             _creatureService = creatureService;
         }
 
@@ -187,6 +181,8 @@ namespace Elemonsters.Services
         {
             try
             {
+                //todo revamp due to abilities handling their own shit
+
                 // step 1 get creature taking turn
                 var me = _creatures.Where(x => x.CreatureID == myTurn).FirstOrDefault();
 
@@ -199,7 +195,7 @@ namespace Elemonsters.Services
                 await CountdownStatuses(myTurn);
 
                 // loop through this until an ability can successfully be performed
-                ActiveResult activeResults = null;
+                ActiveAbilityResult activeResults = null;
 
                 while (activeResults == null)
                 {
@@ -239,18 +235,50 @@ namespace Elemonsters.Services
                     };
 
                     activeResults = await selectedAbility.Activation(activeRequest);
+
+                    var totalDamageRequest = new List<DamageRequest>();
+
+                    totalDamageRequest.AddRange(activeResults.DamageRequests);
+
+                    _messages.Append(activeResults.Messages);
+
+                    // step 7 get on hits
+                    if (activeResults.Triggers == TriggerConditionsEnum.OnHit)
+                    {
+                        var onHits = _creatures.SelectMany(y => y.Statuses
+                                .Where(x =>
+                                    x.ActivatingCreatures.Contains(myTurn) &&
+                                    x.TriggerConditions == TriggerConditionsEnum.OnHit))
+                            .ToList();
+
+                        var activationResultList = new List<StatusEffectResult>();
+
+                        foreach (var hit in onHits)
+                        {
+                            var activationResult = hit.ActivateEffect
+                                (
+                                    new ActivateStatusEffectRequest
+                                    {
+                                        Targets = targets,
+                                        Creatures = _creatures,
+                                        MyTurn = myTurn,
+                                        Value = hit.Value,
+                                    }
+                                )
+                                .GetAwaiter()
+                                .GetResult();
+
+                            activationResultList.Add(activationResult);
+                        }
+
+                        totalDamageRequest.AddRange(activationResultList.SelectMany(x => x.DamageRequests));
+
+                        //todo get messages from passive activations
+                    }
+
+                    //todo handle damage requests
                 }
-
-                // step 7 do all damage requests
-                var damageRequests = activeResults.DamageRequests;
-
-                var damageReturn = await _damageService.HandleDamage(damageRequests, _creatures);
-
-                _messages.Append(damageReturn.Messages);
-
-                _messages.Append(activeResults.SB.ToString());
-                _messages.Append(activeResults.StatusEffectResults.SB);
-
+                
                 if (!string.IsNullOrEmpty(_messages.ToString()))
                 {
                     await _context.Channel.SendMessageAsync(_messages.ToString());

@@ -40,13 +40,6 @@ namespace Elemonsters.Assets.Creatures.CreaturesList
                 Regeneration = 100,
                 Speed = 10,
             };
-            Elements = new CreatureElements
-            {
-                PhysicalElement = PhysicalElementEnum.Fire,
-                PhysicalValue = 100,
-                RangedElement = MagicElementEnum.Wind,
-                RangedValue = 100,
-            };
 
             Abilities.Add
             (new BasicAttack

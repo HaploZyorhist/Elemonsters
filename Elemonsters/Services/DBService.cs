@@ -110,35 +110,5 @@ namespace Elemonsters.Services
                 return null;
             }
         }
-
-        /// <inheritdoc />
-        public async Task<CreatureElements> GetCreatureElements(ulong creatureID)
-        {
-            try
-            {
-                CreatureElements elements = new CreatureElements();
-
-                if (creatureID == 0)
-                {
-                    elements.PhysicalElement = PhysicalElementEnum.Fire;
-                    elements.PhysicalValue = 100;
-                    elements.RangedElement = MagicElementEnum.Wind;
-                    elements.RangedValue = 100;
-                }
-                else
-                {
-                    elements.PhysicalElement = PhysicalElementEnum.Water;
-                    elements.PhysicalValue = 100;
-                    elements.RangedElement = MagicElementEnum.Earth;
-                    elements.RangedValue = 100;
-                }
-
-                return elements;
-            }
-            catch (Exception ex)
-            {
-                return null;
-            }
-        }
     }
 }

@@ -24,7 +24,6 @@ namespace Elemonsters.Commands
         private ILockoutService _locker;
         private IPartyService _partyService;
         private IBattleService _battleService;
-        private DamageFactory _damageFactory;
 
         #endregion
 
@@ -32,13 +31,11 @@ namespace Elemonsters.Commands
 
         public CommandTesting(ILockoutService locker,
                               IPartyService partyService,
-                              IBattleService battleService,
-                              DamageFactory damageFactory)
+                              IBattleService battleService)
         {
             _locker = locker;
             _partyService = partyService;
             _battleService = battleService;
-            _damageFactory = damageFactory;
         }
 
         #endregion
