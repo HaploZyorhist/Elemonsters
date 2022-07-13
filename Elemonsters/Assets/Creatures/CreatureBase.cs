@@ -2,6 +2,7 @@
 using Elemonsters.Models.Enums;
 using Elemonsters.Assets.StatusEffects;
 using Elemonsters.Models.Combat.Requests;
+using Elemonsters.Models.DamageFactory.Results;
 
 namespace Elemonsters.Assets.Creatures
 {
@@ -131,129 +132,16 @@ namespace Elemonsters.Assets.Creatures
         #region Combat Methods
 
         /// <summary>
-        /// method for getting damage from an attack
-        /// </summary>
-        /// <param name="request">data on what damage to be processed</param>
-        /// <returns>the amount of damage that is dealt after reductions</returns>
-        private async Task<int> CalculateDamage(CalculateDamageRequest request)
-        {
-            try
-            {
-                // true damage doesn't care about defenses
-                if (request.AttackType == AttackTypeEnum.True)
-                {
-                    return request.Damage;
-                }
-
-                // setup a multiplier for damage modification from defenses
-                double multiplier;
-
-                // defense value to be used for calculating damage
-                int defense;
-
-                // get defense values for applicable attack types
-                if (request.AttackType == AttackTypeEnum.Physical)
-                {
-                    defense = Stats.Defense;
-                }
-                else
-                {
-                    defense = Stats.Aura;
-                }
-
-                // remove penetrated amount from defense
-                defense -= request.Penetration;
-
-                // if your defense gets super low we need to make sure your damage amplifies properly
-                if (defense >= 0)
-                {
-                    multiplier = 100 / (100 + (double)defense);
-                }
-                else
-                {
-                    multiplier = 2 - 100 / (100 - (double)defense);
-                }
-
-                // damage delt after resistances
-                var damage = multiplier * request.Damage;
-
-                // turning damage into an int
-                int damageRounded = (int)damage;
-
-                return damageRounded;
-            }
-            catch (Exception ex)
-            {
-                return -1;
-            }
-        }
-
-        /// <summary>
         /// method for dealing damage to targets
         /// </summary>
         /// <param name="damageRequests">request object dictating how to deal damage to target</param>
-        public async Task<StringBuilder> HandleDamage(List<DamageRequest> damageRequests)
+        public async Task<StringBuilder> HandleDamage(DamageFactoryResults damage)
         {
             var messages = new StringBuilder();
 
             try
             {
-                int totalDamage = 0;
-
-                var physicalRequests = damageRequests
-                    .Where(x => x.AttackType == AttackTypeEnum.Physical)
-                    .ToList();
-
-                var physicalDamageRequests = physicalRequests
-                    .Select(x => new CalculateDamageRequest()
-                    {
-                        AttackType = AttackTypeEnum.Physical,
-                        Damage = x.Damage,
-                        Penetration = x.Penetration,
-                    })
-                    .ToList();
-
-                int physicalDamage = physicalDamageRequests
-                    .Sum(x => CalculateDamage(x)
-                        .GetAwaiter()
-                        .GetResult());
-
-                var elementalRequests = damageRequests
-                    .Where(x => x.AttackType == AttackTypeEnum.Elemental)
-                    .ToList();
-
-                var elementalDamageRequests = elementalRequests
-                    .Select(x => new CalculateDamageRequest()
-                    {
-                        AttackType = AttackTypeEnum.Elemental,
-                        Damage = x.Damage,
-                        Penetration = x.Penetration,
-                    })
-                    .ToList();
-
-                int elementalDamage = elementalDamageRequests
-                    .Sum(x => CalculateDamage(x)
-                        .GetAwaiter()
-                        .GetResult());
-
-                var trueRequests = damageRequests
-                    .Where(x => x.AttackType == AttackTypeEnum.True)
-                    .ToList();
-
-                var trueDamageRequests = trueRequests
-                    .Select(x => new CalculateDamageRequest
-                    {
-                        AttackType = AttackTypeEnum.True,
-                        Damage = x.Damage,
-                        Penetration = x.Penetration
-                    });
-
-                var trueDamage = trueDamageRequests
-                    .Sum(x => CalculateDamage(x)
-                        .GetAwaiter()
-                        .GetResult());
-
-                totalDamage = physicalDamage + elementalDamage + trueDamage;
+                var totalDamage = damage.ElementalDamage + damage.PhysicalDamage + damage.TrueDamage;
 
                 var elementalShields = Statuses
                     .Where(x =>
@@ -305,8 +193,8 @@ namespace Elemonsters.Assets.Creatures
 
                 int remainingDamage = 0;
 
-                int remainingElementalDamage = elementalDamage;
-                int remainingPhysicalDamage = physicalDamage;
+                int remainingElementalDamage = damage.ElementalDamage;
+                int remainingPhysicalDamage = damage.PhysicalDamage;
 
                 while (elementalShields != null &&
                        elementalShields.Count > 0 &&
@@ -324,6 +212,12 @@ namespace Elemonsters.Assets.Creatures
                         remainingElementalDamage -= currentShield.Value;
                         elementalShields.Remove(currentShield);
                     }
+                }
+
+                if (damage.ElementalDamage != remainingElementalDamage)
+                {
+                    messages.AppendLine(
+                        $"<@{User}>'s {Name}'s Elemental Shield has blocked {damage.ElementalDamage - remainingElementalDamage} damage");
                 }
 
                 remainingDamage = remainingElementalDamage;
@@ -346,7 +240,14 @@ namespace Elemonsters.Assets.Creatures
                     }
                 }
 
-                remainingDamage += remainingPhysicalDamage + trueDamage;
+                if (damage.PhysicalDamage != remainingPhysicalDamage)
+                {
+                    messages.AppendLine(
+                        $"<@{User}>'s {Name}'s Physical Shield has blocked {damage.PhysicalDamage - remainingPhysicalDamage} damage");
+                }
+
+                remainingDamage += remainingPhysicalDamage + damage.TrueDamage;
+                var generalDamage = remainingDamage;
 
                 while (generalShields != null &&
                        generalShields.Count > 0 &&
@@ -366,27 +267,15 @@ namespace Elemonsters.Assets.Creatures
                     }
                 }
 
+                if (generalDamage != remainingDamage)
+                {
+                    messages.AppendLine(
+                        $"<@{User}>'s {Name}'s General Shield has blocked {generalDamage - remainingDamage} damage");
+                }
+
                 if (remainingDamage > 0)
                 {
                     Stats.Health -= remainingDamage;
-                }
-
-                if (elementalDamage != remainingElementalDamage)
-                {
-                    messages.AppendLine(
-                        $"<@{User}>'s {Name}'s Elemental Shield has blocked {elementalDamage - remainingElementalDamage} damage");
-                }
-
-                if (physicalDamage != remainingPhysicalDamage)
-                {
-                    messages.AppendLine(
-                        $"<@{User}>'s {Name}'s Physical Shield has blocked {physicalDamage - remainingPhysicalDamage} damage");
-                }
-
-                if (totalDamage != remainingDamage)
-                {
-                    messages.AppendLine(
-                        $"<@{User}>'s {Name}'s Elemental Shield has blocked {totalDamage - remainingDamage} damage");
                 }
 
                 messages.
@@ -394,7 +283,7 @@ namespace Elemonsters.Assets.Creatures
                                $"{remainingDamage} was dealt to their health");
 
                 messages
-                    .AppendLine($"{remainingElementalDamage} was Elemental Damage, {remainingPhysicalDamage} was Physical Damage, {trueDamage} was True Damage");
+                    .AppendLine($"{remainingElementalDamage} was Elemental Damage, {remainingPhysicalDamage} was Physical Damage, {damage.TrueDamage} was True Damage");
 
                 if (Stats.Health <= 0)
                 {
